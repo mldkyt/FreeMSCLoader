@@ -313,6 +313,7 @@ internal class Manager : MonoBehaviour
         {
             return ai.audioClip;
         }
+    }
 }
 
 #endif

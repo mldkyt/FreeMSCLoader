@@ -28,7 +28,6 @@ public partial class Mod
     //Obsoleted (internal doesn't break old code)
 
     internal virtual bool LoadInMenu => false;
-    internal virtual void OnNewGame() { }
 
     /// <summary>
     /// [DON'T USE] 
