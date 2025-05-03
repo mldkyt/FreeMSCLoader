@@ -215,5 +215,4 @@ internal class ReadFullyStream : Stream
         throw new NotSupportedException();
     }
 }
-
 #endif

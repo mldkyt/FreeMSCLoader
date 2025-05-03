@@ -244,11 +244,11 @@ internal class MP3Stream : IDisposable
 
     private void OnPlaybackStopped(object sender, StoppedEventArgs e)
     {
-        Console.WriteLine("Playback Stopped");
-        if (e.Exception != null) Console.WriteLine("Playback Error {0}", e.Exception.Message);
+        System.Console.WriteLine("Playback Stopped");
+        if (e.Exception != null)
+        {
+            System.Console.WriteLine($"Playback Error {e.Exception.Message}");
+        }
     }
-
-    private delegate void ShowErrorDelegate(string message);
 }
-
 #endif

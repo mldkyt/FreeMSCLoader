@@ -25,15 +25,13 @@ public partial class Mod
     public Mod() => modSettings = new ModSettings(this);
 #pragma warning restore CS0618 // Type or member is obsolete
     //Here is old pre 1.2 functions used here only for backwards compatibility
+    //Obsoleted (internal doesn't break old code)
+
+    internal virtual bool LoadInMenu => false;
+    internal virtual void OnNewGame() { }
 
     /// <summary>
-    ///     Load this mod in Main Menu.
-    /// </summary>
-    public virtual bool LoadInMenu => false;
-
-    /// <summary>
-    ///     Called once after starting "New Game"
-    ///     You can reset/delete your saves here
+    /// [DON'T USE] 
     /// </summary>
     public virtual void OnNewGame()
     {
@@ -122,7 +120,7 @@ public partial class Mod
     }
 
     /// <summary>
-    ///     Called once when mod has been enabled in settings
+    /// Constructor only for compatibiltiy for pro settings.
     /// </summary>
     public virtual void OnModEnabled()
     {

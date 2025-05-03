@@ -465,7 +465,7 @@ public partial class ModLoader : MonoBehaviour
                     ModUI.ShowMessage($"<color=orange><b>Warning:</b></color>{Environment.NewLine}You are using beta build: <color=orange><b>{Name}</b></color>{Environment.NewLine}{Environment.NewLine}Remember that some mods may not work correctly on beta branches.", "Experimental build warning");
             }
             Console.WriteLine($"MSC buildID: <b>{Steamworks.SteamApps.GetAppBuildId()}</b>");
-            if (Steamworks.SteamApps.GetAppBuildId() < 100)
+            if (Steamworks.SteamApps.GetAppBuildId() < 10000)
                 throw new DivideByZeroException();
         }
         catch (Exception ex)
@@ -878,7 +878,7 @@ public partial class ModLoader : MonoBehaviour
     internal static bool CheckEmptyMethod(Mod mod, string methodName)
     {
         //TO TRASH
-        MethodInfo method = mod.GetType().GetMethod(methodName);
+        MethodInfo method = mod.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         return (method.IsVirtual && method.DeclaringType == mod.GetType() && method.GetMethodBody().GetILAsByteArray().Length > 2);
     }
 
@@ -1355,9 +1355,9 @@ public partial class ModLoader : MonoBehaviour
                 mod.isDisabled = true;
                 ModConsole.Error($"Mod <b>{mod.ID}</b> has been <b>disabled!</b> Because it spams too many errors each frame!{Environment.NewLine}Report this problem to mod author.{Environment.NewLine}Last error message:");
                 ModConsole.Error(e.GetFullMessage());
-                Console.WriteLine(e);
             }
         }
+        Console.WriteLine(e);
     }
 
     internal static string SidChecksumCalculator(string rawData)

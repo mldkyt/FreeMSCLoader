@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using MSCLoader;
 
+
 namespace AudioLibrary;
 
 internal class Manager : MonoBehaviour
@@ -277,7 +278,7 @@ internal class Manager : MonoBehaviour
         var result = AudioFormat.unknown;
         try
         {
-            result = (AudioFormat)Enum.Parse(typeof(AudioFormat), GetExtension(filePath), true);
+            result = (AudioFormat)Enum.Parse(typeof(AudioFormat), GetExtension(filePath.ToLower()), true);
         }
         catch (Exception e)
         {
@@ -312,7 +313,6 @@ internal class Manager : MonoBehaviour
         {
             return ai.audioClip;
         }
-    }
 }
 
 #endif

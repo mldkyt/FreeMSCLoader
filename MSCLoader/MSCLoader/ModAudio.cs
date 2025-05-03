@@ -2,13 +2,13 @@
 using AudioLibrary;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace MSCLoader;
 
 /// <summary>
-/// Audio library (play local *.mp3, *.ogg, *.wav, *.aiff, *.flac)
+/// Audio library (play local ".ogg", ".ogv", ".mp3", ".flac", ".wav", ".aiff" files)
 /// </summary>
 public class ModAudio : MonoBehaviour
 {
@@ -16,6 +16,11 @@ public class ModAudio : MonoBehaviour
     /// Your AudioSource goes here
     /// </summary>
     public AudioSource audioSource;
+
+    /// <summary>
+    /// Allowed audio extensions (for easy string comparation)
+    /// </summary>
+    public static readonly HashSet<string> allowedExtensions = new(StringComparer.OrdinalIgnoreCase) { ".ogg", ".ogv", ".mp3", ".flac", ".wav", ".aiff" };
 
     /// <summary>
     /// Load audio from file
@@ -72,7 +77,7 @@ public class ModAudio : MonoBehaviour
         }
         try
         {
-           return Manager.Load(stream, format, filename, doStream, true, true);
+            return Manager.Load(stream, format, filename, doStream, true, true);
         }
         catch (Exception e)
         {
@@ -80,7 +85,7 @@ public class ModAudio : MonoBehaviour
             if (ModLoader.devMode)
                 ModConsole.Error(e.ToString());
             System.Console.WriteLine(e);
-            
+
         }
         return null;
     }
