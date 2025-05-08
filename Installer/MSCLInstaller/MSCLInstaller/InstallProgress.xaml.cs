@@ -64,7 +64,7 @@ namespace MSCLInstaller
         }
         internal async void UninstalMSCLoader()
         {
-            AddLog("Uninstalling MSCLoader...");
+            AddLog("Uninstalling FreeMSCLoader...");
             bool failed = await Task.Run(() => UninstallMSCLoaderWork(progressLog, progress));
             if (failed) return;
             if (MessageBox.Show("Uninstall Complete", "Uninstalling MSCLoader", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
@@ -88,7 +88,7 @@ namespace MSCLInstaller
 
         internal async void UpdateMSCLoader(bool updateCore, bool updateRefs, bool updateMSCL)
         {
-            AddLog("Updating MSCLoader...");
+            AddLog("Updating FreeMSCLoader...");
             bool failed = await Task.Run(() => UpdateMSCLoaderWork(updateCore, updateRefs, updateMSCL, progressLog, progress));
             if (failed) return;
             if (MessageBox.Show("Update Complete", "Update MSCLoader", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
@@ -102,10 +102,10 @@ namespace MSCLInstaller
         {
             bool failed = false;
             progress.Report((0, 10, true));
-            System.Threading.Thread.Sleep(1500);
+
             if (!UpdateConfigFile(newfolder, progressLog, progress))
                 return true;
-            System.Threading.Thread.Sleep(100);
+
             if (deleteTarget)
             {
                 try
@@ -114,20 +114,20 @@ namespace MSCLInstaller
                     {
                         progressLog.Report(("Deleting existing folder", $"Deleting.....{Storage.modsPath}"));
                         Directory.Delete(Storage.modsPath, true);
-                        System.Threading.Thread.Sleep(100);
+
                     }
                     progressLog.Report(("Creating new folder structure", $"Creating new folder structure"));
                     progress.Report((0, 5, false));
 
-                    System.Threading.Thread.Sleep(100);
+
                     Directory.CreateDirectory(Storage.modsPath);
                     progressLog.Report(($"Creating: {Storage.modsPath}", $"Creating.....{Storage.modsPath}"));
                     progress.Report((1, 5, false));
-                    System.Threading.Thread.Sleep(100);
+
                     Directory.CreateDirectory(Path.Combine(Storage.modsPath, "Assets"));
                     progressLog.Report(($"Creating Assets folder", $"Creating.....{Path.Combine(Storage.modsPath, "Assets")}"));
                     progress.Report((2, 5, false));
-                    System.Threading.Thread.Sleep(100);
+
                     Directory.CreateDirectory(Path.Combine(Storage.modsPath, "References"));
                     progressLog.Report(($"Creating References folder", $"Creating.....{Path.Combine(Storage.modsPath, "References")}"));
                     progress.Report((3, 5, false));
@@ -139,21 +139,21 @@ namespace MSCLInstaller
                     return true;
                 }
             }
-            System.Threading.Thread.Sleep(100);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true))
             {
                 MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
                 return true;
             }
-            System.Threading.Thread.Sleep(100);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false))
             {
                 MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
                 return true;
             }
-            System.Threading.Thread.Sleep(100);
+
             Directory.Delete(Path.Combine(Storage.currentPath, "temp"), true);
             progress.Report((5, 5, false));
             progressLog.Report(("Done", "Done!"));
@@ -167,7 +167,7 @@ namespace MSCLInstaller
             string[] oldMods = Directory.GetFiles(oldPath, "*.dll");
             string[] oldAssets = Directory.GetDirectories(Path.Combine(oldPath, "Assets"));
             string[] oldRefs = Directory.GetFiles(Path.Combine(oldPath, "References"), "*.dll");
-            System.Threading.Thread.Sleep(1500);
+
             progressLog.Report(($"Copying mods", $"- Start Copying Mods -"));
             try
             {
@@ -176,10 +176,10 @@ namespace MSCLInstaller
                     progressLog.Report(($"Copying mod {Path.GetFileName(oldMods[i])}", $"Copying mod {Path.GetFileName(oldMods[i])}....."));
                     progress.Report((i + 1, oldMods.Length, false));
                     File.Copy(oldMods[i], Path.Combine(Storage.modsPath, Path.GetFileName(oldMods[i])));
-                    System.Threading.Thread.Sleep(100);
+
                 }
                 progressLog.Report(($"Copying mods", $"- End Copying Mods -"));
-                System.Threading.Thread.Sleep(1000);
+
                 progressLog.Report(($"Copying Assets", $"- Start Copying Assets -"));
                 for (int i = 0; i < oldAssets.Length; i++)
                 {
@@ -188,21 +188,21 @@ namespace MSCLInstaller
                     progressLog.Report(($"Copying Asset {dir.Name}", $"Copying Asset {dir.Name}....."));
                     progress.Report((i + 1, oldAssets.Length, false));
                     CopyDirectory(oldAssets[i], Path.Combine(Path.Combine(Storage.modsPath, "Assets"), dir.Name), true);
-                    System.Threading.Thread.Sleep(100);
+
                 }
                 progressLog.Report(($"Copying Assets", $"- End Copying Assets -"));
-                System.Threading.Thread.Sleep(1000);
+
                 progressLog.Report(($"Copying Config", $"- Start Copying Config -"));
                 CopyDirectory(Path.Combine(oldPath, "Config"), Path.Combine(Storage.modsPath, "Config"), true);
                 progressLog.Report(($"Copying Config", $"- End Copying Config -"));
-                System.Threading.Thread.Sleep(1000);
+
                 progressLog.Report(($"Copying Refereces", $"- Start Copying Refereces -"));
                 for (int i = 0; i < oldRefs.Length; i++)
                 {
                     progressLog.Report(($"Copying reference {Path.GetFileName(oldRefs[i])}", $"Copying reference {Path.GetFileName(oldMods[i])}....."));
                     progress.Report((i + 1, oldRefs.Length, false));
                     File.Copy(oldRefs[i], Path.Combine(Path.Combine(Storage.modsPath, "References"), Path.GetFileName(oldRefs[i])));
-                    System.Threading.Thread.Sleep(100);
+
                 }
             }
             catch (Exception e)
@@ -221,7 +221,7 @@ namespace MSCLInstaller
             bool failed = false;
             progress.Report((0, 10, true));
             int max = 0;
-            System.Threading.Thread.Sleep(1500);
+
             try
             {
                 ZipFile zip1 = ZipFile.Read(Path.Combine(Storage.currentPath, "main_ref.pack"));
@@ -232,7 +232,7 @@ namespace MSCLInstaller
                     progressLog.Report(($"Deleting {zz.FileName}", $"Deleting.....{zz.FileName}"));
                     DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed" + zz.FileName));
                     progress.Report((i, max, false));
-                    System.Threading.Thread.Sleep(100);
+
                 }
             }
             catch (Exception ex)
@@ -241,22 +241,22 @@ namespace MSCLInstaller
                 progressLog.Report((ex.Message, ex.ToString()));
                 return true;
             }
-            System.Threading.Thread.Sleep(100);
+
             DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.dll"));
             DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.dll.mdb"));
             DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.pdb"));
             progressLog.Report(($"Deleting MSCLoader.dll", $"Deleting.....MSCLoader.dll"));
             progress.Report((max - 2, max, false));
-            System.Threading.Thread.Sleep(100);
+
             DeleteIfExists(Path.Combine(Storage.mscPath, "winhttp.dll"));
 
             progressLog.Report(($"Deleting winhttp.dll", $"Deleting.....winhttp.dll"));
             progress.Report((max - 1, max, false));
-            System.Threading.Thread.Sleep(100);
+
             DeleteIfExists(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
             progressLog.Report(($"Deleting doorstop_config.ini", $"Deleting.....doorstop_config.ini"));
             progress.Report((max, max, false));
-            System.Threading.Thread.Sleep(100);
+
             progressLog.Report(("Done", "Done!"));
             return failed;
         }
@@ -265,7 +265,7 @@ namespace MSCLInstaller
             bool failed = false;
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing Core Files (1 / 4)", $"Installing Core Files"));
-            System.Threading.Thread.Sleep(1500);
+
             if (Storage.is64)
             {
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "core64.pack"), Storage.mscPath, progressLog, progress, false)) failed = true;
@@ -282,7 +282,7 @@ namespace MSCLInstaller
             }
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing References (2 / 4)", $"Installing References"));
-            System.Threading.Thread.Sleep(1500);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false))
             {
                 MessageBox.Show("Failed to install files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -291,9 +291,9 @@ namespace MSCLInstaller
             }
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing MSCLoader (3 / 4)", $"Installing MSCLoader"));
-            System.Threading.Thread.Sleep(1500);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
-            System.Threading.Thread.Sleep(100);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false)) failed = true;
             if (failed)
             {
@@ -303,7 +303,7 @@ namespace MSCLInstaller
             }
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing MSCLoader Assets (4 / 4)", $"Installing MSCLoader Assets"));
-            System.Threading.Thread.Sleep(1500);
+
             if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false))
             {
                 MessageBox.Show("Failed to install files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -312,15 +312,15 @@ namespace MSCLInstaller
             }
             progress.Report((0, 10, true));
             progressLog.Report(($"Cleaning temp files", $"Cleaning temp files"));
-            System.Threading.Thread.Sleep(1500);
+
             Directory.Delete(Path.Combine(Storage.currentPath, "temp"), true);
             progress.Report((0, 10, true));
             progressLog.Report(($"Updating config file", $"Updating config file"));
-            System.Threading.Thread.Sleep(1500);
+
             if (!UpdateConfigFile(newfolder, progressLog, progress))
                 failed = true;
             progress.Report((5, 5, false));
-            System.Threading.Thread.Sleep(100);
+
             if (failed)
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
             else
@@ -332,7 +332,7 @@ namespace MSCLInstaller
             bool failed = false;
             progress.Report((0, 10, true));
             progressLog.Report(($"Updating MSCLoader Files", $"Updating MSCLoader Files"));
-            System.Threading.Thread.Sleep(1500);
+
             if (updateCore)
             {
                 if (Storage.is64)
@@ -340,7 +340,7 @@ namespace MSCLInstaller
                     else
                     if (!ExtractFiles(Path.Combine(Storage.currentPath, "core32.pack"), Storage.mscPath, progressLog, progress, false)) failed = true;
                 progressLog.Report(($"Updating config file", $"Updating config file"));
-                System.Threading.Thread.Sleep(100);
+
                 if (!UpdateConfigFile(Storage.modsFolderCfg, progressLog, progress)) failed = true;
             }
             if (failed)
@@ -349,7 +349,7 @@ namespace MSCLInstaller
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
                 return failed;
             }
-            System.Threading.Thread.Sleep(100);
+
             if (updateRefs)
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false)) failed = true;
             if (failed)
@@ -358,17 +358,17 @@ namespace MSCLInstaller
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
                 return failed;
             }
-            System.Threading.Thread.Sleep(100);
+
             if (updateMSCL)
             {
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
-                System.Threading.Thread.Sleep(100);
+
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false)) failed = true;
-                System.Threading.Thread.Sleep(100);
+
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false)) failed = true;
                 progress.Report((0, 10, true));
                 progressLog.Report(($"Cleaning temp files", $"Cleaning temp files"));
-                System.Threading.Thread.Sleep(1500);
+
                 Directory.Delete(Path.Combine(Storage.currentPath, "temp"), true);
             }
             if (failed)
@@ -402,7 +402,7 @@ namespace MSCLInstaller
                     progressLog.Report(($"Reading file: {Path.GetFileName(fn)}", $"Reading file.....{Path.GetFileName(fn)}"));
                     if (!isTemp)
                         progress.Report((0, zip1.Entries.Count, false));
-                    System.Threading.Thread.Sleep(100);
+
 
                     for (int i = 0; i < zip1.Entries.Count; i++)
                     {
@@ -413,7 +413,7 @@ namespace MSCLInstaller
                             progress.Report((i, zip1.Entries.Count, false));
                         }
                         zz.Extract(target, ExtractExistingFileAction.OverwriteSilently);
-                        System.Threading.Thread.Sleep(100);
+
 
                     }
                     zip1.Dispose();
@@ -477,20 +477,20 @@ namespace MSCLInstaller
                     //The fuck happened here?
                     break;
             }
-            System.Threading.Thread.Sleep(100);
+
             if (File.Exists(Path.Combine(Storage.mscPath, "doorstop_config.ini")))
             {
                 try
                 {
                     progressLog.Report(("Reading: doorstop_config.ini", "Reading.....doorstop_config.ini"));
                     IniData ini = new FileIniDataParser().ReadFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
-                    System.Threading.Thread.Sleep(100);
+
                     ini["MSCLoader"]["mods"] = newCfg;
                     ini["MSCLoader"]["skipIntro"] = Storage.skipIntroCfg.ToString().ToLower();
                     ini["MSCLoader"]["skipConfigScreen"] = Storage.skipConfigScreenCfg.ToString().ToLower();
                     progressLog.Report(("Writing: doorstop_config.ini", "Writing.....doorstop_config.ini"));
                     new FileIniDataParser().WriteFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"), ini, System.Text.Encoding.ASCII);
-                    System.Threading.Thread.Sleep(100);
+
                 }
                 catch (Exception e)
                 {
