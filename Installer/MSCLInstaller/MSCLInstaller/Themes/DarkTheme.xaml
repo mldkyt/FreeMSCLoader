@@ -326,13 +326,13 @@
                             </Border>
                         </Popup>
                         <ToggleButton
-                            Grid.ColumnSpan="2"
+                            Grid.ColumnSpan="2" Grid.Column="0"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                             Style="{StaticResource ComboBoxReadonlyToggleButton}" />
                         <ContentPresenter
-                            Margin="{TemplateBinding Padding}"
+                            Grid.Column="0" Margin="{TemplateBinding Padding}"
                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             Content="{TemplateBinding SelectionBoxItem}"
@@ -644,6 +644,7 @@
                 <RowDefinition MaxHeight="16" />
                 <RowDefinition Height="0.00001*" />
                 <RowDefinition MaxHeight="16" />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <Border Grid.RowSpan="3" Background="#2c2c2c" />
             <RepeatButton
@@ -681,6 +682,7 @@
                 <ColumnDefinition MaxWidth="16" />
                 <ColumnDefinition Width="0.00001*" />
                 <ColumnDefinition MaxWidth="16" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Border Grid.ColumnSpan="3" Background="#2c2c2c" />
             <RepeatButton
@@ -814,7 +816,8 @@
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="true" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </Border>
                         <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                        <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4"  BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3">
+                        <Border Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4" Grid.Column="0"
+                                BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3">
                             <Border.OpacityMask>
                                 <MultiBinding Converter="{StaticResource BorderGapMaskConverter}" ConverterParameter="7">
                                     <Binding ElementName="Header" Path="ActualWidth" />
