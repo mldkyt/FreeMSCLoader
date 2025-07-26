@@ -5,7 +5,7 @@
 # FreeMSCLoader
 A mod loader for My Summer Car, without the update server over insecure HTTP.
 
-Original work is by piotrulos, this modification was made so that anyone can use MSCLoader without sending any requests to an update server running over insecure HTTP. HTTPS certificates and/or Cloudflare are free nowadays.
+Original work is by piotrulos, this modification was made so that anyone can use MSCLoader without sending any requests to an update server running over insecure HTTP. The update server is also running non-free software, which is not GPL licensed, which doesn't give the user full freedom over the software.
 
 Please report any issues and ideas [here](https://github.com/piotrulos/MSCModLoader/issues)
 
