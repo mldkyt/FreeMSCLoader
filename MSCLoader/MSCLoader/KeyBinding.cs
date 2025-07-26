@@ -18,41 +18,77 @@ internal class Keybinds
 
 internal class KeyBinding : MonoBehaviour
 {
-    public Text KeybindName;
+    public Text KeybindName, KeybindText;
+    public GameObject Buttons, ButtonsR;
 
-    public KeyCode modifierKey;
-    public Text modifierDisplay;
-    public Button modifierButton;
-    public Image buttonModImage;
-
-    public KeyCode key;
-    public Text keyDisplay;
-    public Button keyButton;
-    public Image buttonImage;
-    public string id;
-    private readonly Color originalColor = new Color32(101, 34, 18, 255);
-
-    private readonly Color toggleColor = new Color32(101, 130, 18, 255);
-    private bool ismodifier;
+    bool reassignKey = false;
+    bool ismodifier = false;
 
     public Mod mod;
-
-    private bool reassignKey;
-#if !Mini
-    public void LoadBind(Keybind kb, Mod m)
+    private SettingsKeybind keyb;
+    public void ChangeKeybind(bool modifier)
     {
-        mod = m;
-        KeybindName.text = kb.Name;
-        id = kb.ID;
-        modifierKey = kb.Modifier;
-        key = kb.Key;
-        modifierButton.onClick.AddListener(() => ChangeKeyCode(true, true));
-        keyButton.onClick.AddListener(() => ChangeKeyCode(true, false));
-
-        modifierDisplay.text = modifierKey.ToString().ToUpper();
-        keyDisplay.text = key.ToString().ToUpper();
+        ChangeKeyCode(true, modifier);
     }
 
+    public void ResetToDefault()
+    {
+        ModUI.ShowYesNoMessage($"This will reset keybind to default{Environment.NewLine}Default keybind is: <color=yellow>{(keyb.DefaultKeybModif == KeyCode.None ? keyb.DefaultKeybKey.ToString().ToUpper() : $"{keyb.DefaultKeybModif.ToString().ToUpper()} + {FriendlyBindName(keyb.DefaultKeybKey.ToString()).ToUpper()}")}</color>{Environment.NewLine}Do you want to continue?", "Reset Keybind", delegate
+        {
+            keyb.ResetToDefault();
+            ModMenu.SaveModBinds(mod);
+            ChangeKeyCode(false, ismodifier);
+        });
+    }
+    public void CancelReassign()
+    {
+        ChangeKeyCode(false, ismodifier);
+    }
+
+    public void SetToNone()
+    {
+        if (keyb.KeybModif != KeyCode.None && !ismodifier)
+        {
+            KeybindError(false);
+            return;
+        }
+        UpdateKeyCode(KeyCode.None, ismodifier);
+    }
+
+#if !Mini
+    public void LoadBind(SettingsKeybind kb, Mod m)
+    {
+        mod = m;
+        keyb = kb;
+        KeybindName.text = kb.Name;
+        KeybindText.text = kb.KeybModif == KeyCode.None ? FriendlyBindName(kb.KeybKey.ToString()).ToUpper() : $"{FriendlyBindName(kb.KeybModif.ToString()).ToUpper()} + {FriendlyBindName(kb.KeybKey.ToString()).ToUpper()}";
+            
+    }
+    private string FriendlyBindName(string name)
+    {
+        if (name.StartsWith("Keypad"))
+        {
+            switch (name)
+            {
+                case "KeypadDivide":
+                    return "Num /";
+                case "KeypadMultiply":
+                    return "Num *";
+                case "KeypadMinus":
+                    return "Num -";
+                case "KeypadPlus":
+                    return "Num +";
+                case "KeypadEnter":
+                    return "Num Enter";
+                case "KeypadEquals":
+                    return "Num =";
+                case "KeypadPeriod":
+                    return "Num .";
+            }
+            return name.Replace("Keypad", "Num ");
+        }        
+        return name;
+    }
     private void Update()
     {
         if (reassignKey)
@@ -63,11 +99,16 @@ internal class KeyBinding : MonoBehaviour
                 for (var i = 0; i < keyCodes.Length; i++)
                     if (Input.GetKeyDown(keyCodes[i]))
                     {
-                        if (keyCodes[i] != KeyCode.Mouse0 && keyCodes[i] != KeyCode.Mouse1) //LMB = cancel
-                            UpdateKeyCode(keyCodes[i], ismodifier);
+                        if (keyCodes[i] == KeyCode.Mouse0) //LMB = skip
+                        {
+                            continue;
+                        }
                         if (keyCodes[i] == KeyCode.Mouse1) //RMB = sets to none
-                            UpdateKeyCode(KeyCode.None, ismodifier);
-                        ChangeKeyCode(false, ismodifier);
+                        {
+                            SetToNone();
+                            break;
+                        }
+                        UpdateKeyCode(keyCodes[i], ismodifier);
                         break;
                     }
             }
@@ -79,35 +120,57 @@ internal class KeyBinding : MonoBehaviour
         ismodifier = modifier;
         if (toggle)
         {
-            if (modifier)
-                buttonModImage.color = toggleColor;
-            else
-                buttonImage.color = toggleColor;
+            KeybindText.text = "PRESS A KEY...";
+            Buttons.SetActive(false);
+            ButtonsR.SetActive(true);
         }
         else
         {
-            if (modifier)
-                buttonModImage.color = originalColor;
-            else
-                buttonImage.color = originalColor;
+            KeybindText.text = keyb.KeybModif == KeyCode.None ? FriendlyBindName(keyb.KeybKey.ToString()).ToUpper() : $"{FriendlyBindName(keyb.KeybModif.ToString()).ToUpper()} + {keyb.KeybKey.ToString().ToUpper()}";
+            Buttons.SetActive(true);
+            ButtonsR.SetActive(false);
         }
     }
 
     private void UpdateKeyCode(KeyCode kcode, bool modifier)
     {
-        var bind = mod.Keybinds.Find(x => x.ID == id);
         if (modifier)
         {
-            bind.Modifier = kcode;
-            modifierDisplay.text = kcode.ToString().ToUpper();
+            if (keyb.KeybKey == kcode && kcode != KeyCode.None)          {
+                KeybindError(true);
+                return;
+            }
+            if (keyb.KeybKey == KeyCode.None && kcode != KeyCode.None)
+            {
+                KeybindError(false);
+                return;
+            }
+            keyb.KeybModif = kcode;
         }
         else
         {
-            bind.Key = kcode;
-            keyDisplay.text = kcode.ToString().ToUpper();
+            if (keyb.KeybModif == kcode && kcode != KeyCode.None)
+            {
+                KeybindError(true);
+                return;
+            }
+            keyb.KeybKey = kcode;
         }
 
         ModMenu.SaveModBinds(mod);
+        ChangeKeyCode(false, ismodifier);
+    }
+    void KeybindError(bool sameKey)
+    {
+        if (sameKey)
+        {
+            ModUI.ShowMessage("You cannot use the same key for both key and modifier!", "Keybind Error");
+        }
+        else
+        {
+            ModUI.ShowMessage("You cannot set key to none if there is a modifier!", "Keybind Error");
+        }
+        ChangeKeyCode(false, ismodifier);
     }
 #endif
 }

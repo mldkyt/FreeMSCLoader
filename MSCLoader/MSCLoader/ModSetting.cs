@@ -19,6 +19,13 @@ public class ModSetting
 
     internal SettingsElement SettingsElement;
     internal SettingsGroup HeaderElement;
+
+    internal ModSetting(SettingsType type, bool visibleByDefault) 
+    {
+        SettingType = type; 
+        DefaultVisibility = visibleByDefault;
+        IsVisible = visibleByDefault;
+    }
     internal ModSetting(string id, string name, Action doAction, SettingsType type, bool visibleByDefault)
     {
         ID = id;
@@ -478,7 +485,7 @@ public class SettingsHeader : ModSetting
     }
 
 
-    internal SettingsHeader(string name, Color backgroundColor, Color textColor, bool collapsedByDefault, bool visibleByDefault) : base(null, name, null, SettingsType.Header, visibleByDefault)
+    internal SettingsHeader(string name, Color backgroundColor, Color textColor, bool collapsedByDefault, bool visibleByDefault) : base(null, name, null, SettingsType.HeaderGroup, visibleByDefault)
     {
         BackgroundColor = backgroundColor;
         TextColor = textColor;
@@ -491,6 +498,7 @@ public class SettingsHeader : ModSetting
 /// </summary>
 public class SettingsText : ModSetting
 {
+    internal TextAnchor Alignment = TextAnchor.MiddleLeft;
     /// <summary>
     /// Get Text value
     /// </summary>
@@ -509,7 +517,10 @@ public class SettingsText : ModSetting
         UpdateName(value);
     }
 
-    internal SettingsText(string name, bool visibleByDefault) : base(null, name, null, SettingsType.Text, visibleByDefault) { }
+    internal SettingsText(string name, TextAlignment textAlignment, bool visibleByDefault) : base(null, name, null, SettingsType.Text, visibleByDefault)
+    {
+        Alignment = (TextAnchor)(textAlignment + 3); //Convert TextAlignment to TextAnchor (TextAlignment is easier for modders)
+    }
 
 }
 
@@ -631,6 +642,19 @@ public class SettingsButton : ModSetting
         CustomIcon = customIcon;
     }
 }
+
+/// <summary>
+/// Settings Horizontal/Vertical Group
+/// </summary>
+public class SettingsGroupLayout : ModSetting
+{  
+    internal bool IsHorizontal = false;
+    internal SettingsGroupLayout(bool isHorizontal, bool visibleByDefault) : base(SettingsType.LayoutGroup, visibleByDefault) 
+    {
+        IsHorizontal = isHorizontal;
+    }
+}
+
 /// <summary>
 /// Settings Reset Button
 /// </summary>
@@ -681,7 +705,7 @@ public class SettingsDynamicText : SettingsText
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public Settings Instance;
-    internal SettingsDynamicText(string name) : base(name, true)
+    internal SettingsDynamicText(string name) : base(name, TextAlignment.Left, true)
     {
         Instance = new Settings(this);
         Instance.ID = name;

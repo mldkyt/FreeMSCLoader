@@ -3,6 +3,7 @@ using IniParser;
 using IniParser.Model;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
@@ -43,7 +44,7 @@ internal class ModMenu : Mod
             dm_logST = Settings.AddCheckBox("MSCLoader_dm_logST", "Log-all stack trace (not recommended)", false);
             dm_operr = Settings.AddCheckBox("MSCLoader_dm_operr", "Log-all open console on error", false);
             dm_warn = Settings.AddCheckBox("MSCLoader_dm_warn", "Log-all open console on warning", false);
-            dm_pcon = Settings.AddCheckBox("MSCLoader_dm_pcon", "Persistent console (sometimes may break font)", false);
+            dm_pcon = Settings.AddCheckBox("MSCLoader_dm_pcon", "Persistent console (sometimes may break font color)", false);
         }
         Settings.AddHeader("Basic Settings");
         expWarning = Settings.AddCheckBox("MSCLoader_expWarning", "Show experimental warning (experimental branch on Steam)", true);
@@ -166,16 +167,11 @@ internal class ModMenu : Mod
         if (mod != null)
         {
             // Revert binds
-            Keybind[] bind = Keybind.Get(mod).ToArray();
-            for (int i = 0; i < bind.Length; i++)
+            for (int i = 0; i < mod.modKeybindsList.Count; i++)
             {
-                Keybind original = Keybind.GetDefault(mod).Find(x => x.ID == bind[i].ID);
-
-                if (original != null)
-                {
-                    bind[i].Key = original.Key;
-                    bind[i].Modifier = original.Modifier;
-                }
+                if(mod.modKeybindsList[i].IsHeader) continue;
+                SettingsKeybind skb = (SettingsKeybind)mod.modKeybindsList[i];
+                skb.ResetToDefault();
             }
 
             // Save binds
@@ -199,25 +195,22 @@ internal class ModMenu : Mod
     {
 
         KeybindList list = new KeybindList();
-        string path = Path.Combine(ModLoader.GetModSettingsFolder(mod), "keybinds.json");
-
-        Keybind[] binds = Keybind.Get(mod).ToArray();
-        for (int i = 0; i < binds.Length; i++)
+        string path = Path.Combine(ModLoader.GetModSettingsFolder(mod), "keybinds.json");        
+        for (int i = 0; i < mod.modKeybindsList.Count; i++)
         {
-            if (binds[i].ID == null || binds[i].Vals != null)
-                continue;
+            if (mod.modKeybindsList[i].IsHeader) continue;
+            SettingsKeybind skb = (SettingsKeybind)mod.modKeybindsList[i];
             Keybinds keybinds = new Keybinds
             {
-                ID = binds[i].ID,
-                Key = binds[i].Key,
-                Modifier = binds[i].Modifier
+                ID = skb.ID,
+                Key = skb.KeybKey,
+                Modifier = skb.KeybModif
             };
 
             list.keybinds.Add(keybinds);
         }
         string serializedData = JsonConvert.SerializeObject(list, Formatting.Indented);
         File.WriteAllText(path, serializedData);
-
     }
 
     // Reset settings
@@ -285,11 +278,6 @@ internal class ModMenu : Mod
         {
             switch (Settings.GetModSettings(mod)[i].SettingType)
             {
-                case SettingsType.Button:
-                case SettingsType.RButton:
-                case SettingsType.Header:
-                case SettingsType.Text:
-                    continue;
                 case SettingsType.CheckBoxGroup:
                     SettingsCheckBoxGroup group = (SettingsCheckBoxGroup)Settings.GetModSettings(mod)[i];
                     list.settings.Add(new Setting(group.ID, group.Value));
@@ -318,6 +306,8 @@ internal class ModMenu : Mod
                     SettingsColorPicker colorPicker = (SettingsColorPicker)Settings.GetModSettings(mod)[i];
                     list.settings.Add(new Setting(colorPicker.ID, colorPicker.Value));
                     break;
+                default:
+                    break;
             }
         }
 
@@ -329,14 +319,14 @@ internal class ModMenu : Mod
     // Load all keybinds.
     public static void LoadBinds()
     {
-        Mod[] binds = ModLoader.LoadedMods.Where(mod => Keybind.Get(mod).Count > 0).ToArray();
-        for (int i = 0; i < binds.Length; i++)
+        for (int i = 0; i < ModLoader.LoadedMods.Count; i++)
         {
-            // Check if there is custom keybinds file (if not, create)
-            string path = Path.Combine(ModLoader.GetModSettingsFolder(binds[i]), "keybinds.json");
+            if (ModLoader.LoadedMods[i].modKeybindsList.Count == 0) continue;
+            List<ModKeybind> binds = ModLoader.LoadedMods[i].modKeybindsList;
+            string path = Path.Combine(ModLoader.GetModSettingsFolder(ModLoader.LoadedMods[i]), "keybinds.json");
             if (!File.Exists(path))
             {
-                SaveModBinds(binds[i]);
+                SaveModBinds(ModLoader.LoadedMods[i]);
                 continue;
             }
             //Load and deserialize 
@@ -345,11 +335,11 @@ internal class ModMenu : Mod
                 continue;
             for (int k = 0; k < keybinds.keybinds.Count; k++)
             {
-                Keybind bind = binds[i].Keybinds.Find(x => x.ID == keybinds.keybinds[k].ID);
+                SettingsKeybind bind = (SettingsKeybind)binds.Find(x => x.ID == keybinds.keybinds[k].ID);
                 if (bind == null)
                     continue;
-                bind.Key = keybinds.keybinds[k].Key;
-                bind.Modifier = keybinds.keybinds[k].Modifier;
+                bind.KeybKey = keybinds.keybinds[k].Key;
+                bind.KeybModif = keybinds.keybinds[k].Modifier;
             }
         }
     }
@@ -411,11 +401,6 @@ internal class ModMenu : Mod
                         continue;
                     switch (ms.SettingType)
                     {
-                        case SettingsType.Button:
-                        case SettingsType.RButton:
-                        case SettingsType.Header:
-                        case SettingsType.Text:
-                            continue;
                         case SettingsType.CheckBoxGroup:
                             SettingsCheckBoxGroup group = (SettingsCheckBoxGroup)ms;
                             group.SetValue(bool.Parse(settings.settings[j].Value.ToString()));
@@ -443,6 +428,8 @@ internal class ModMenu : Mod
                         case SettingsType.ColorPicker:
                             SettingsColorPicker colorPicker = (SettingsColorPicker)ms;
                             colorPicker.Value = settings.settings[j].Value.ToString();
+                            break;
+                        default:
                             break;
                     }
                 }

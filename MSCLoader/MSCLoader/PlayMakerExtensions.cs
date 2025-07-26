@@ -1,7 +1,6 @@
 ﻿#if !Mini
 using HutongGames.PlayMaker;
 using System;
-using System.Linq;
 
 namespace MSCLoader;
 
@@ -575,38 +574,32 @@ public static class PlayMakerExtensions
     /// <summary>
     /// Get a variable of specified type and name.
     /// </summary>
-    /// <typeparam name="T">Type of variable to get.</typeparam>
+    /// <typeparam name="T">Type of FSM Variable to get.</typeparam>
     /// <param name="pm">PlayMakerFSM from which to get the variable.</param>
     /// <param name="ID">Name of the variable to find.</param>
     /// <returns>The specified variable if it is found, otherwise null.</returns>
-    public static T GetVariable<T>(this PlayMakerFSM pm, string ID) where T : new()
+    public static T GetVariable<T>(this PlayMakerFSM pm, string ID) where T : class, new()
     {
         pm.InitializeFSM();
         Type type = typeof(T);
         FsmVariables allVars = pm.Fsm.Variables;
-        NamedVariable[] targetedVars = type switch
-        {
-            _ when type == typeof(FsmFloat) => allVars.FloatVariables,
-            _ when type == typeof(FsmInt) => allVars.IntVariables,
-            _ when type == typeof(FsmBool) => allVars.BoolVariables,
-            _ when type == typeof(FsmGameObject) => allVars.GameObjectVariables,
-            _ when type == typeof(FsmString) => allVars.StringVariables,
-            _ when type == typeof(FsmVector2) => allVars.Vector2Variables,
-            _ when type == typeof(FsmVector3) => allVars.Vector3Variables,
-            _ when type == typeof(FsmColor) => allVars.ColorVariables,
-            _ when type == typeof(FsmRect) => allVars.RectVariables,
-            _ when type == typeof(FsmMaterial) => allVars.MaterialVariables,
-            _ when type == typeof(FsmTexture) => allVars.TextureVariables,
-            _ when type == typeof(FsmQuaternion) => allVars.QuaternionVariables,
-            _ when type == typeof(FsmObject) => allVars.ObjectVariables,
-            _ => null,
-        };
-        if (targetedVars == null)
-        {
-            ModConsole.Warning($"PlayMakerExtension.GetVariable - Type of \"{type.Name}\" is not a NamedVariable, please make sure you are using the correct type (e.g. \"FsmFloat\" instead of \"float\")");
-            return new T();
-        }
-        return (T)(object)targetedVars.FirstOrDefault(x => x.Name == ID);
+
+        if (type == typeof(FsmFloat)) return allVars.FindFsmFloat(ID) as T;
+        if (type == typeof(FsmInt)) return allVars.FindFsmInt(ID) as T;
+        if (type == typeof(FsmBool)) return allVars.FindFsmBool(ID) as T;
+        if (type == typeof(FsmGameObject)) return allVars.FindFsmGameObject(ID) as T;
+        if (type == typeof(FsmString)) return allVars.FindFsmString(ID) as T;
+        if (type == typeof(FsmVector2)) return allVars.FindFsmVector2(ID) as T;
+        if (type == typeof(FsmVector3)) return allVars.FindFsmVector3(ID) as T;
+        if (type == typeof(FsmColor)) return allVars.FindFsmColor(ID) as T;
+        if (type == typeof(FsmRect)) return allVars.FindFsmRect(ID) as T;
+        if (type == typeof(FsmMaterial)) return allVars.FindFsmMaterial(ID) as T;
+        if (type == typeof(FsmTexture)) return allVars.FindFsmTexture(ID) as T;
+        if (type == typeof(FsmQuaternion)) return allVars.FindFsmQuaternion(ID) as T;
+        if (type == typeof(FsmObject)) return allVars.FindFsmObject(ID) as T;
+
+        ModConsole.Warning($"PlayMakerExtension.GetVariable - Type of <b>{type.Name}</b> is not a NamedVariable, please make sure you are using the correct type (e.g. <b>FsmFloat</b> instead of <b>float</b>)");
+        return null;
     }
 
     /// <summary>

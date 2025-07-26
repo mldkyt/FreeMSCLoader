@@ -1,9 +1,6 @@
 ﻿global using UnityEngine;
-using HutongGames.PlayMaker.Actions;
-
-
-
 #if !Mini
+using HutongGames.PlayMaker.Actions;
 using HutongGames.PlayMaker;
 using System;
 using Newtonsoft.Json;
@@ -718,6 +715,7 @@ public partial class ModLoader : MonoBehaviour
 
     IEnumerator LoadMods()
     {
+        FsmGameObject playerCam = FsmVariables.GlobalVariables.FindFsmGameObject("POV");
         ModConsole.Print("<color=aqua>==== Loading mods (Phase 1) ====</color><color=#505050ff>");
         int totalCount = PLoadMods.Length + BC_ModList.Length + SecondPassMods.Length + Mod_PreLoad.Length + Mod_OnLoad.Length + Mod_PostLoad.Length;
         canvLoading.SetLoading("Loading mods - Phase 1", 0, totalCount, "Loading mods. Please wait...");
@@ -754,10 +752,10 @@ public partial class ModLoader : MonoBehaviour
         }
         canvLoading.SetLoadingTitle("Waiting...");
         canvLoading.SetLoadingStatus("Waiting for game to finish load...");
-        while (GameObject.Find("PLAYER/Pivot/AnimPivot/Camera/FPSCamera") == null)
+        while (playerCam.Value == null)
             yield return null;
         MouseFix();
-        GameObject.Find("PLAYER/Pivot/AnimPivot/Camera/FPSCamera").AddComponent<UnifiedRaycast>();
+        playerCam.Value.AddComponent<UnifiedRaycast>();
         yield return null;
         canvLoading.SetLoadingTitle("Loading mods - Phase 2");
         canvLoading.SetLoadingStatus("Loading mods. Please wait...");
@@ -1004,7 +1002,7 @@ public partial class ModLoader : MonoBehaviour
             if (LoadedMods[i].ID.StartsWith("MSCLoader_"))
                 continue;
             try
-            {
+            {              
                 Settings.ModSettings(LoadedMods[i]);
                 if (LoadedMods[i].newSettingsFormat)
                 {
@@ -1333,19 +1331,12 @@ public partial class ModLoader : MonoBehaviour
             mod.modErrors++;
         if (devMode)
         {
-            if (mod.modErrors == 30)
+            if (mod.modErrors >= 60)
             {
+                mod.isDisabled = true;
                 ModConsole.Error($"Mod <b>{mod.ID}</b> spams <b>too many errors each frame</b>! Last error: ");
                 ModConsole.Error(e.ToString());
-                if (ModMenu.dm_disabler.GetValue())
-                {
-                    mod.isDisabled = true;
-                    ModConsole.Warning($"[DevMode] Mod <b>{mod.ID}</b> has been disabled!");
-                }
-                else
-                {
-                    ModConsole.Warning($"[DevMode] Mod <b>{mod.ID}</b> is still running!");
-                }
+                ModConsole.Warning($"[DevMode] This is performance issue if it happens also outside od Mod class!");
             }
         }
         else

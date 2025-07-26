@@ -31,10 +31,12 @@ internal enum SettingsType
     Slider,
     SliderInt,
     TextBox,
-    Header,
     Text,
     DropDown,
-    ColorPicker
+    ColorPicker,
+    HeaderGroup,
+    LayoutGroup,
+    LayoutGroupEnd
 }
 
 /// <summary>
@@ -87,6 +89,7 @@ public partial class Settings
     internal static void ModSettings(Mod modEntry)
     {
         settingsMod = modEntry;
+        Keybind.ModSettings(modEntry);
     }
 
     /// <summary>
@@ -136,19 +139,61 @@ public partial class Settings
     }
 
     /// <summary>
+    /// Create Settings Group, you can group settings to easily toggle visibility of multiple elements or create horizontal layout group.
+    /// </summary>
+    /// <param name="isHorizontal">Create Horizontal Layout Group (default=false)</param>
+    /// <param name="visibleByDefault">Visible by default (default=true)</param>
+    /// <returns>SettingsGroupLayout</returns>
+    public static SettingsGroupLayout CreateGroup(bool isHorizontal = false, bool visibleByDefault = true)
+    {
+        if (settingsMod == null)
+        {
+            ModConsole.Error($"[<b>{settingsMod}</b>] CreateGroup() error: unknown Mod instance, settings must be created inside your ModSettings function");
+            return null;
+        }
+
+        SettingsGroupLayout s = new SettingsGroupLayout(isHorizontal, visibleByDefault);
+        settingsMod.modSettingsList.Add(s);
+        return s;
+    }
+
+    /// <summary>
+    /// End and close previously created group
+    /// </summary>
+    public static void EndGroup()
+    {
+        if (settingsMod == null)
+        {
+            ModConsole.Error($"[<b>{settingsMod}</b>] EndGroup() error: unknown Mod instance, settings must be created inside your ModSettings function");
+            return;
+        }
+        ModSetting s = new ModSetting(SettingsType.LayoutGroupEnd, true);
+        settingsMod.modSettingsList.Add(s);
+    }
+
+    /// <summary>
     /// Add just a text
     /// </summary>
     /// <param name="text">Just a text (supports unity rich text)</param>
     /// <param name="visibleByDefault">Visible by default (default=true)</param>
     /// <returns>SettingsText</returns>
-    public static SettingsText AddText(string text, bool visibleByDefault = true)
+    public static SettingsText AddText(string text, bool visibleByDefault = true) => AddText(text, TextAlignment.Left, visibleByDefault);
+
+    /// <summary>
+    /// Add just a text
+    /// </summary>
+    /// <param name="text">Just a text (supports unity rich text)</param>
+    /// <param name="textAlignment">Text alignment (Left, Center, Right)</param>
+    /// <param name="visibleByDefault">Visible by default (default=true)</param>
+    /// <returns>SettingsText</returns>
+    public static SettingsText AddText(string text, TextAlignment textAlignment, bool visibleByDefault = true)
     {
         if (settingsMod == null)
         {
             ModConsole.Error($"[<b>{settingsMod}</b>] AddText() error: unknown Mod instance, settings must be created inside your ModSettings function");
             return null;
         }
-        SettingsText s = new SettingsText(text, visibleByDefault);
+        SettingsText s = new SettingsText(text, textAlignment, visibleByDefault);
         settingsMod.modSettingsList.Add(s);
         return s;
     }

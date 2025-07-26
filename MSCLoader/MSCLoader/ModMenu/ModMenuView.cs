@@ -13,6 +13,7 @@ internal class ModMenuView : MonoBehaviour
     public GameObject HeaderGroupPrefab;
     public GameObject ButtonPrefab, CheckBoxPrefab, KeyBindPrefab, LabelPrefab, SliderPrefab, TextBoxPrefab;
     public GameObject DropDownListPrefab, ColorPickerPrefab;
+    public GameObject VerticalGroupPrefab, HorizontalGroupPrefab;
     public UniversalView universalView;
 
     public bool modList = false;
@@ -130,17 +131,17 @@ internal class ModMenuView : MonoBehaviour
         Transform currentTransform = null;
         for (int i = 0; i < Settings.GetModSettings(ModLoader.LoadedMods[0]).Count; i++)
         {
-            if (Settings.GetModSettings(ModLoader.LoadedMods[0])[i].SettingType == SettingsType.Header)
+            if (Settings.GetModSettings(ModLoader.LoadedMods[0])[i].SettingType == SettingsType.HeaderGroup)
                 currentTransform = SettingsHeader(Settings.GetModSettings(ModLoader.LoadedMods[0])[i], listView.transform);
             else
                 SettingsList(Settings.GetModSettings(ModLoader.LoadedMods[0])[i], currentTransform);
         }
         GameObject keyBind = Instantiate(KeyBindPrefab);
-        keyBind.GetComponent<KeyBinding>().LoadBind(ModLoader.LoadedMods[0].Keybinds[0], ModLoader.LoadedMods[0]);
+        keyBind.GetComponent<KeyBinding>().LoadBind((SettingsKeybind)ModLoader.LoadedMods[0].modKeybindsList[0], ModLoader.LoadedMods[0]);
         keyBind.transform.SetParent(currentTransform, false);
         for (int i = 0; i < Settings.GetModSettings(ModLoader.LoadedMods[1]).Count; i++)
         {
-            if (Settings.GetModSettings(ModLoader.LoadedMods[1])[i].SettingType == SettingsType.Header)
+            if (Settings.GetModSettings(ModLoader.LoadedMods[1])[i].SettingType == SettingsType.HeaderGroup)
                 currentTransform = SettingsHeader(Settings.GetModSettings(ModLoader.LoadedMods[1])[i], listView.transform);
             else
                 SettingsList(Settings.GetModSettings(ModLoader.LoadedMods[1])[i], currentTransform);
@@ -241,7 +242,6 @@ internal class ModMenuView : MonoBehaviour
         else
             tx.settingName.text += $"<color=aqua>[None]</color>";
         //----------------------------------
-        bool assets = false, references = false;
         List<References> refList = new List<References>();
         //----------------------------------
         SettingsGroup header2 = CreateHeader(listView.transform, "Bundle Assets", Color.yellow);
@@ -255,10 +255,9 @@ internal class ModMenuView : MonoBehaviour
             SettingsElement checkbox = checkboxP.GetComponent<SettingsElement>();
             checkbox.settingName.text = "Include Assets Folder";
             checkbox.checkBox.isOn = true;
-            assets = true;
             checkbox.checkBox.onValueChanged.AddListener(delegate
             {
-                assets = checkbox.checkBox.isOn;
+                _ = checkbox.checkBox.isOn;
             });
             checkbox.transform.SetParent(header2.HeaderListView.transform, false);
         }
@@ -299,7 +298,6 @@ internal class ModMenuView : MonoBehaviour
                     }
                     else
                     {
-                        references = true;
                         GameObject checkboxP3 = Instantiate(CheckBoxPrefab);
                         SettingsElement checkbox3 = checkboxP3.GetComponent<SettingsElement>();
                         checkbox3.settingName.text = rf;
@@ -370,6 +368,7 @@ internal class ModMenuView : MonoBehaviour
         RemoveChildren(listView.transform);
         listView.GetComponentInParent<ScrollRect>().verticalNormalizedPosition = 0;
         Transform currentTransform = null;
+        Transform previousTransform = null;
         //If first settings element is not header, create one.
         if (mod.proSettings)
         {
@@ -378,7 +377,7 @@ internal class ModMenuView : MonoBehaviour
             CreateText(header.HeaderListView.transform, $"<color=aqua>Incompatible settings format! Settings below may not load or work correctly.</color>{Environment.NewLine}Report that to mod author to use proper settings format.");
         }
 
-        if (Settings.GetModSettings(mod)[0].SettingType != SettingsType.Header)
+        if (Settings.GetModSettings(mod)[0].SettingType != SettingsType.HeaderGroup)
         {
             SettingsGroup header = CreateHeader(listView.transform, "Settings", Color.cyan);
             currentTransform = header.HeaderListView.transform;
@@ -386,17 +385,40 @@ internal class ModMenuView : MonoBehaviour
 
         for (int i = 0; i < Settings.GetModSettings(mod).Count; i++)
         {
-            if (Settings.GetModSettings(mod)[i].SettingType == SettingsType.Header)
-                currentTransform = SettingsHeader(Settings.GetModSettings(mod)[i], listView.transform);
-            else
+            switch (Settings.GetModSettings(mod)[i].SettingType)
             {
-                SettingsList(Settings.GetModSettings(mod)[i], currentTransform);
+                case SettingsType.HeaderGroup:
+                    currentTransform = SettingsHeader(Settings.GetModSettings(mod)[i], listView.transform);
+                    previousTransform = null;
+                    break;
+                case SettingsType.LayoutGroup:
+                    if (previousTransform == null)
+                    {
+                        previousTransform = currentTransform;
+                        currentTransform = SettingsLayoutGroup(Settings.GetModSettings(mod)[i], currentTransform);
+                    }
+                    else
+                        ModConsole.Error($"<b>{mod.ID}</b> Settings error - Groups cannot be nested, end previous group first.");
+                    break;
+                case SettingsType.LayoutGroupEnd:
+                    if (previousTransform != null)
+                    {
+                        currentTransform = previousTransform;
+                        previousTransform = null;
+                    }
+                    else
+                        ModConsole.Error($"<b>{mod.ID}</b> Settings error - EndGroup can be only called after creating VerticalGroup or HorizontalGroup. And before creating new Header (Headers can't be in group so header already closes previous group).");
+                    break;
+                default:
+                    SettingsList(Settings.GetModSettings(mod)[i], currentTransform);
+                    break;
             }
+
         }
 
         if (!mod.hideResetAllSettings)
         {
-            SettingsElement rbtn = CreateButton(listView.transform, "Reset all settings to default", new Color32(128,255,255,255), Color.black);
+            SettingsElement rbtn = CreateButton(listView.transform, "Reset all settings to default", new Color32(128, 255, 255, 255), Color.black);
             rbtn.settingName.alignment = TextAnchor.MiddleLeft;
             rbtn.iconElement.texture = rbtn.iconPack[(int)SettingsButton.ButtonIcon.Reset];
             rbtn.iconElement.gameObject.SetActive(true);
@@ -426,27 +448,32 @@ internal class ModMenuView : MonoBehaviour
         listView.GetComponentInParent<ScrollRect>().verticalNormalizedPosition = 0;
         Transform currentTransform = null;
         //If first settings element is not header, create one.
-        if (mod.Keybinds[0].ID != null && mod.Keybinds[0].Vals == null)
+        if (!mod.modKeybindsList[0].IsHeader)
         {
             SettingsGroup header = CreateHeader(listView.transform, "Keybinds", Color.yellow);
             currentTransform = header.HeaderListView.transform;
         }
-        for (int i = 0; i < mod.Keybinds.Count; i++)
+        for (int i = 0; i < mod.modKeybindsList.Count; i++)
         {
-            if (mod.Keybinds[i].ID == null && mod.Keybinds[i].Vals != null)
+            if (mod.modKeybindsList[i].IsHeader)
             {
-                SettingsGroup header = CreateHeader(listView.transform, mod.Keybinds[i].Name, (Color)mod.Keybinds[i].Vals[1]);
-                header.HeaderBackground.color = (Color)mod.Keybinds[i].Vals[0];
+                KeybindHeader hdr = (KeybindHeader)mod.modKeybindsList[i];
+                SettingsGroup header = CreateHeader(listView.transform, hdr.Name, hdr.TextColor);
+                header.HeaderBackground.color = hdr.BackgroundColor;
+                if(hdr.CollapsedByDefault) header.SetHeaderNoAnim(false);
                 currentTransform = header.HeaderListView.transform;
             }
             else
             {
                 GameObject keyBind = Instantiate(KeyBindPrefab);
-                keyBind.GetComponent<KeyBinding>().LoadBind(mod.Keybinds[i], mod);
+                keyBind.GetComponent<KeyBinding>().LoadBind((SettingsKeybind)mod.modKeybindsList[i], mod);
                 keyBind.transform.SetParent(currentTransform, false);
             }
         }
-        SettingsElement rbtn = CreateButton(listView.transform, "Reset all Keybinds to default", Color.white, Color.black);
+        SettingsElement rbtn = CreateButton(listView.transform, "Reset all Keybinds to default", new Color32(128, 255, 255, 255), Color.black);
+        rbtn.settingName.alignment = TextAnchor.MiddleLeft;
+        rbtn.iconElement.texture = rbtn.iconPack[(int)SettingsButton.ButtonIcon.Reset];
+        rbtn.iconElement.gameObject.SetActive(true);
         rbtn.button.onClick.AddListener(delegate
         {
             ModMenu.ResetBinds(mod);
@@ -462,6 +489,14 @@ internal class ModMenuView : MonoBehaviour
         if (setting.CollapsedByDefault) header.SetHeaderNoAnim(false);
         header.gameObject.SetActive(setting.IsVisible);
         return header.HeaderListView.transform;
+    }
+    internal Transform SettingsLayoutGroup(ModSetting set, Transform listView)
+    {
+        SettingsGroupLayout setting = (SettingsGroupLayout)set;
+        SettingsGroup group = CreateGroup(listView.transform, setting.IsHorizontal);
+        setting.HeaderElement = group;
+        group.gameObject.SetActive(setting.IsVisible);
+        return group.HeaderListView.transform;
     }
 
     internal void SettingsList(ModSetting set, Transform listView)
@@ -659,6 +694,7 @@ internal class ModMenuView : MonoBehaviour
                 SettingsElement label = tx.GetComponent<SettingsElement>();
                 settingText.SettingsElement = label;
                 label.settingName.text = settingText.Name;
+                label.settingName.alignment = settingText.Alignment;
                 tx.transform.SetParent(listView, false);
                 label.gameObject.SetActive(settingText.IsVisible);
                 break;
@@ -682,6 +718,13 @@ internal class ModMenuView : MonoBehaviour
         SettingsGroup header = hdr.GetComponent<SettingsGroup>();
         header.HeaderTitle.text = title.ToUpper();
         header.HeaderTitle.color = textColor;
+        hdr.transform.SetParent(listView, false);
+        return header;
+    }
+    public SettingsGroup CreateGroup(Transform listView, bool horizontal = false)
+    {
+        GameObject hdr = GameObject.Instantiate(horizontal ? HorizontalGroupPrefab : VerticalGroupPrefab);
+        SettingsGroup header = hdr.GetComponent<SettingsGroup>();
         hdr.transform.SetParent(listView, false);
         return header;
     }

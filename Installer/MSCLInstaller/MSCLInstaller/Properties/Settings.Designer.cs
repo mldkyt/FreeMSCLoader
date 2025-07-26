@@ -16,7 +16,7 @@ namespace MSCLInstaller.Properties {
     
     
     [CompilerGenerated()]
-    [GeneratedCode("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.8.0.0")]
+    [GeneratedCode("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
     internal sealed partial class Settings : ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(Synchronized(new Settings())));

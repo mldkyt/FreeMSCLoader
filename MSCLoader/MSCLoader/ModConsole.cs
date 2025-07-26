@@ -26,7 +26,7 @@ public class ModConsole : Mod
     internal static SettingsSliderInt ConsoleFontSize;
     internal static SettingsText versionText;
     private GameObject UI;
-    private Keybind consoleKey;
+    private SettingsKeybind consoleKey;
     public override void ModSetup()
     {
         SetupFunction(Setup.OnMenuLoad, Mod_OnMenuLoad);
@@ -38,9 +38,9 @@ public class ModConsole : Mod
     private void Mod_Settings()
     {
         Settings.ModSettings(this);
-        consoleKey = Keybind.Add(this, "Open", "<color=lime>Open console key combination</color>", KeyCode.BackQuote);
-        Settings.AddHeader("FreeLoader info", Color.black);
-        versionText = Settings.AddText($"<color=lime>FreeLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color>");
+        consoleKey = Keybind.Add("Open", "<color=lime>Open console key combination</color>", KeyCode.BackQuote);
+        Settings.AddHeader("MSCLoader info", Color.black);
+        versionText = Settings.AddText($"<color=lime><size=16>MSCLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</size></color>", TextAlignment.Center);
         Settings.AddHeader("Console Settings");
         Settings.AddText("Basic settings for console");
         typing = Settings.AddCheckBox("MSCLoader_ConsoleTyping", "Start typing when you open console", false);
@@ -61,7 +61,7 @@ public class ModConsole : Mod
     {
         if (ModLoader.Instance.newBuild > ModLoader.Instance.currentBuild)
         {
-            versionText.SetValue($"<color=orange>FreeLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color> -> <color=lime>MSCLoader {ModLoader.Instance.newVersion} build {ModLoader.Instance.newBuild}</color>");
+            versionText.SetValue($"<color=yellow>FreeLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color> -> <color=lime>MSCLoader {ModLoader.Instance.newVersion} build {ModLoader.Instance.newBuild}</color>");
         }
         else
         {
