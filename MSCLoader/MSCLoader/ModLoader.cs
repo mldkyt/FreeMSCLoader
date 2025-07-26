@@ -302,8 +302,8 @@ public partial class ModLoader : MonoBehaviour
         var playerName = ModMenu.playerName.Value;
         ModConsole.Print($"<b><color=orange>Hello <color=lime>{playerName}</color>!</color></b>");
         
-        ModConsole.Print("<b>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</b>");
-        ModConsole.Print("<b>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</b>");
+        ModConsole.Print("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.");
+        ModConsole.Print("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.");
         
         SaveLoad.LoadModsSaveData();
         PreLoadMods();
