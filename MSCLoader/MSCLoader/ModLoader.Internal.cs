@@ -44,7 +44,7 @@ public partial class ModLoader
 
     internal int currentBuild = MSCLInfo.Build;
     internal int newBuild = 0;
-    internal string newVersion = FreeLoader_Ver;
+    internal string newVersion = MSCLoader_Ver;
     internal MSCUnloader mscUnloader;
 
     internal static string steamID;

@@ -17,14 +17,14 @@ public class ModConsole : Mod
     public override string ID => "MSCLoader_Console";
 
     public override string Name => "[INTERNAL] Console";
-    public override string Version => ModLoader.FreeLoader_Ver;
+    public override string Version => ModLoader.MSCLoader_Ver;
     public override string Author => "MSCLoader";
 
     internal static bool IsOpen;
     internal static ConsoleView console;
     internal static SettingsCheckBox typing;
     internal static SettingsSliderInt ConsoleFontSize;
-    internal static SettingsText versionText;
+    internal static SettingsText versionText, lastCheckText;
     private GameObject UI;
     private SettingsKeybind consoleKey;
     public override void ModSetup()
@@ -39,8 +39,10 @@ public class ModConsole : Mod
     {
         Settings.ModSettings(this);
         consoleKey = Keybind.Add("Open", "<color=lime>Open console key combination</color>", KeyCode.BackQuote);
-        Settings.AddHeader("MSCLoader info", Color.black);
-        versionText = Settings.AddText($"<color=lime><size=16>MSCLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</size></color>", TextAlignment.Center);
+        Settings.AddHeader("Info", Color.black);
+        Settings.AddText($"MSCLoader <color=aqua>v{ModLoader.MSCLoader_Ver}</color> [<color=lime>build {ModLoader.Instance.currentBuild}</color>] for <color=lightblue>{MSCLInfo.TargetGame}</color> ");
+        versionText = Settings.AddText($"[err] new version string", false);
+        lastCheckText = Settings.AddText($"Last checked for mod updates: <color=aqua>Unknown</color>");
         Settings.AddHeader("Console Settings");
         Settings.AddText("Basic settings for console");
         typing = Settings.AddCheckBox("MSCLoader_ConsoleTyping", "Start typing when you open console", false);
@@ -61,11 +63,12 @@ public class ModConsole : Mod
     {
         if (ModLoader.Instance.newBuild > ModLoader.Instance.currentBuild)
         {
-            versionText.SetValue($"<color=yellow>FreeLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color> -> <color=lime>MSCLoader {ModLoader.Instance.newVersion} build {ModLoader.Instance.newBuild}</color>");
+            versionText.SetVisibility(true);
+            versionText.SetValue($"New update available: <color=aqua>v{ModLoader.Instance.newVersion}</color> <color=lime>[build {ModLoader.Instance.newBuild}]</color>");
         }
         else
         {
-            versionText.SetValue($"<color=lime>FreeLoader {ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color>");
+            versionText.SetVisibility(false);
         }
         string sp = Path.Combine(ModLoader.SettingsFolder, Path.Combine("MSCLoader_Settings", "lastCheck"));
         if (File.Exists(sp))
@@ -103,7 +106,7 @@ public class ModConsole : Mod
         }
         catch (Exception e)
         {
-            ModUI.ShowMessage($"Fatal error:{Environment.NewLine}<color=orange>{e.Message}</color>{Environment.NewLine}Please install FreeLoader correctly.", "Fatal Error");
+            ModUI.ShowMessage($"Fatal error:{Environment.NewLine}<color=orange>{e.Message}</color>{Environment.NewLine}Please install MSCLoader correctly.", "Fatal Error");
         }
         ConsoleCommand.cc = console.controller;
         console.SetVisibility(false);
@@ -130,9 +133,7 @@ public class ModConsole : Mod
     /// <param name="obj">Text or object to print to console.</param>
     public static void Print(object obj)
     {
-        if (console != null)
-            console.controller.AppendLogLine(obj.ToString());
-        System.Console.WriteLine($"MSCLoader Message: {obj}");
+        Print(obj.ToString());
     }
 
     /// <summary>

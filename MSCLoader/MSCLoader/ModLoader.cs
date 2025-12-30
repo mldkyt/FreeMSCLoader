@@ -30,7 +30,7 @@ public partial class ModLoader : MonoBehaviour
     /// <summary>
     /// The current version of the ModLoader.
     /// </summary>
-    public static readonly string FreeLoader_Ver;
+    public static readonly string MSCLoader_Ver = MSCLInfo.Version;
 
     /// <summary>
     /// Is this version of ModLoader experimental (this is NOT game experimental branch)
@@ -100,7 +100,7 @@ public partial class ModLoader : MonoBehaviour
         if (!loaderPrepared)
         {
             loaderPrepared = true;
-            GameObject go = new GameObject("MSCLoader", typeof(ModLoader));
+            GameObject go = new("MSCLoader", typeof(ModLoader));
             Instance = go.GetComponent<ModLoader>();
             DontDestroyOnLoad(go);
         }
@@ -136,7 +136,7 @@ public partial class ModLoader : MonoBehaviour
                     vse = true;
                 if (ModMenu.forceMenuVsync.GetValue() && !vse)
                     QualitySettings.vSyncCount = 1; //vsync in menu
-                if (GameObject.Find("FreeLoader Info") == null)
+                if (GameObject.Find("MSCLoader Info") == null)
                 {
                     MainMenuInfo();
                 }
@@ -213,7 +213,7 @@ public partial class ModLoader : MonoBehaviour
 
     private void Init()
     {
-        Console.WriteLine($"{Environment.NewLine}[FreeLoader Init]");
+        Console.WriteLine($"{Environment.NewLine}[MSCLoader Init]");
         string[] launchArgs = Environment.GetCommandLineArgs();
         Console.WriteLine("Launch arguments:");
         Console.WriteLine(string.Join(" ", launchArgs));
@@ -296,13 +296,21 @@ public partial class ModLoader : MonoBehaviour
             Directory.CreateDirectory(AssetsFolder);
 
         LoadCoreAssets();
+        if (CheckVortexBS())
+        {
+            ModUI.ShowMessage($"<b><color=orange>DON'T use Vortex</color></b> to update MSCLoader, or to install tools or mods.{Environment.NewLine}<b><color=orange>Vortex isn't supported by MSCLoader</color></b>, because it's implementation breaks Mods folder by putting wrong files into it.{Environment.NewLine}{Environment.NewLine}MSCLoader will try to fix your mods folder now, <b><color=orange>please restart your game.</color></b>{Environment.NewLine}If this message shows again after restart, rebuild your Mods folder from scratch.", "Fatal Error");
+            return;
+        }
 
-        LoadMod(new ModConsole(), FreeLoader_Ver);
+        LoadMod(new ModConsole(), MSCLoader_Ver);
         LoadedMods[0].A_ModSettings.Invoke();
-        LoadMod(new ModMenu(), FreeLoader_Ver);
+        LoadMod(new ModMenu(), MSCLoader_Ver);
         LoadedMods[1].A_ModSettings.Invoke();
         ModMenu.LoadSettings();
-        ModConsole.Print($"<color=lime>ModLoader <b><color=aqua>v{FreeLoader_Ver}</color></b> ready</color>");
+        if (experimental)
+            ModConsole.Print($"<color=lime>MSCLoader <b><color=aqua>v{MSCLoader_Ver}</color></b> for {MSCLInfo.TargetGame}</color> [<color=magenta>Experimental</color> <color=lime>build {currentBuild}</color>]");
+        else
+            ModConsole.Print($"<color=lime>MSCLoader <b><color=aqua>v{MSCLoader_Ver}</color></b> for {MSCLInfo.TargetGame}</color>");
         MainMenuInfo();
         Console.WriteLine("Continue init");
         ContinueInit();
@@ -343,7 +351,7 @@ public partial class ModLoader : MonoBehaviour
         }
 
         if (devMode)
-            ModConsole.Warning("You are running ModLoader in <color=red><b>DevMode</b></color>, this mode is <b>only for modders</b> and shouldn't be used in normal gameplay.");
+            ModConsole.Warning("You are running MSCLoader in <color=red><b>DevMode</b></color>, this mode is <b>only for modders</b> and shouldn't be used in normal gameplay.");
         System.Console.WriteLine(SystemInfoFix()); //operating system version to output_log.txt
         if (InvalidMods.Count > 0)
         {
@@ -540,9 +548,9 @@ public partial class ModLoader : MonoBehaviour
         if (Directory.Exists(Path.Combine(ModsFolder, "References")))
         {
             string[] files = Directory.GetFiles(Path.Combine(ModsFolder, "References"), "*.dll");
-            string[] managedStuff = Directory.GetFiles(Path.Combine("mysummercar_Data", "Managed"), "*.dll");
-            string[] alreadyIncluded = (from s in managedStuff select Path.GetFileName(s)).ToArray();
-            string[] unusedFiles = new string[0];
+            string[] alreadyIncluded = Directory.GetFiles(Path.Combine("mysummercar_Data", "Managed"), "*.dll").Select(Path.GetFileName).ToArray();
+            string[] unusedFiles = [];
+
             if (File.Exists(Path.Combine(Path.Combine(ModsFolder, "References"), "unused.txt")))
             {
                 unusedFiles = File.ReadAllLines(Path.Combine(Path.Combine(ModsFolder, "References"), "unused.txt"));
@@ -627,13 +635,23 @@ public partial class ModLoader : MonoBehaviour
 
         GameObject loading = GameObject.Instantiate(loadingP);
         canvLoading = loading.GetComponent<MSCLoaderCanvasLoading>();
-        canvLoading.lHeader.text = $"MSCLOADER <color=green>{FreeLoader_Ver}</color>";
+        canvLoading.lHeader.text = $"MSCLOADER <color=green>{MSCLoader_Ver}</color>";
         DontDestroyOnLoad(loading);
 
         GameObject.Destroy(loadingP);
         GameObject.Destroy(mbP);
         ModConsole.Print("Loading core assets completed!");
         ab.Unload(false);
+    }
+
+    private bool CheckVortexBS()
+    {
+        if (File.Exists(Path.Combine(ModsFolder, "MSCLoader.dll")))
+        {
+            File.Delete(Path.Combine(ModsFolder, "MSCLoader.dll"));
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -648,18 +666,22 @@ public partial class ModLoader : MonoBehaviour
     {
         Text info, mf, extra;
         mainMenuInfo = Instantiate(mainMenuInfo);
-        mainMenuInfo.name = "FreeLoader Info";
+        mainMenuInfo.name = "FreeMSCLoader Info";
         menuInfoAnim = mainMenuInfo.GetComponent<Animation>();
         menuInfoAnim.Play("fade_in");
         info = mainMenuInfo.transform.GetChild(0).gameObject.GetComponent<Text>();
         mf = mainMenuInfo.transform.GetChild(1).gameObject.GetComponent<Text>();
         extra = mainMenuInfo.transform.GetChild(2).gameObject.GetComponent<Text>();
-        info.text = $"Mod Loader MSCLoader <color=cyan>v{FreeLoader_Ver}</color> is ready! (<color=orange>Checking for updates...</color>)";
+        info.text = $"Mod Loader FreeMSCLoader <color=cyan>v{MSCLoader_Ver}</color> is ready!";
         mf.text = $"<color=orange>Mods folder:</color> {ModsFolder}";
         MainMenuPath();
+        if (isMonoDebugger)
+        {
+            extra.text += $"<color=magenta>Debugging Enabled</color> (<color=lime>{monoDebugIP}</color>)";
+        }
         mainMenuInfo.transform.SetParent(ModUI.GetCanvas(0).transform, false);
     }
-    
+
     internal static void ModException(Exception e, Mod mod, bool save = false)
     {
         string errorDetails = $"{Environment.NewLine}<b>Details: </b>{e.Message} in <b>{new StackTrace(e, true).GetFrame(0).GetMethod()}</b>";
@@ -914,19 +936,13 @@ public partial class ModLoader : MonoBehaviour
                 continue;
             }
 
-            if (MSCLInternal.IsEAFile(files[i]))
-            {
-            }
-            else
-            {
-                LoadDLL(files[i]);
-            }
+            LoadDLL(files[i]);
         }
         if (File.Exists(Path.Combine(ModsFolder, "unused.txt")))
         {
             File.Delete(Path.Combine(ModsFolder, "unused.txt"));
         }
-        actualModList = LoadedMods.Where(x => !x.ID.StartsWith("MSCLoader_")).ToArray();
+        actualModList = LoadedMods.Where(x => !x.ID.StartsWith("MSCLoader_")).OrderBy(x => x.ID).ToArray();
         BC_ModList = actualModList.Where(x => !x.newFormat).ToArray();
 
         PLoadMods = BC_ModList.Where(x => CheckEmptyMethod(x, "PreLoad")).ToArray();
@@ -1029,6 +1045,12 @@ public partial class ModLoader : MonoBehaviour
                 }
                 else
                     LoadedMods[i].ModSettings();
+                //Load disabled flag first
+                string path = Path.Combine(ModLoader.GetModSettingsFolder(ModLoader.LoadedMods[i]), "settings.json");
+                if (!File.Exists(path))
+                    continue;
+                SettingsList settings = JsonConvert.DeserializeObject<SettingsList>(File.ReadAllText(path));
+                LoadedMods[i].isDisabled = settings.isDisabled;
             }
             catch (Exception e)
             {
@@ -1054,9 +1076,13 @@ public partial class ModLoader : MonoBehaviour
         {
             Assembly asm = null;
             if (byteFile == null)
+            {
                 asm = Assembly.LoadFrom(file);
+            }
             else
+            {
                 asm = Assembly.Load(byteFile);
+            }
             bool isMod = false;
             AssemblyName[] list = asm.GetReferencedAssemblies();
             if (Attribute.IsDefined(asm, typeof(System.Runtime.InteropServices.GuidAttribute)))
@@ -1111,9 +1137,9 @@ public partial class ModLoader : MonoBehaviour
                     m.asmGuid = asmGuid;
                     isMod = true;
                     if (addRef.Count > 0)
-                        LoadMod(m, msVer, file, addRef.ToArray());
+                        LoadMod(m, msVer, file, [.. addRef]);
                     else
-                        LoadMod(m, msVer, file);
+                        LoadMod(m, msVer, file, null);
                     break;
                 }
                 else

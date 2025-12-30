@@ -1,34 +1,29 @@
 ﻿#if !Mini
 using System;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Steamworks;
 
 namespace MSCLoader;
 
 /// <summary>
-///     List of possible scenes
+/// List of possible scenes
 /// </summary>
 public enum CurrentScene
 {
     /// <summary>
-    ///     Main Menu
+    /// Main Menu
     /// </summary>
     MainMenu,
-
     /// <summary>
-    ///     Game Scene
+    /// Game Scene
     /// </summary>
     Game,
-
     /// <summary>
-    ///     Intro for new game
+    /// Intro for new game
     /// </summary>
     NewGameIntro,
-
     /// <summary>
-    ///     End game scene
+    /// End game scene
     /// </summary>
     Ending
 }
@@ -36,23 +31,24 @@ public enum CurrentScene
 public partial class ModLoader
 {
     /// <summary>
-    ///     Current scene
+    /// Current scene
     /// </summary>
     public static CurrentScene CurrentScene { get; internal set; }
 
     /// <summary>
-    ///     Check if steam is present
+    /// Check if steam is present
     /// </summary>
     /// <returns>Valid steam detected.</returns>
     public static bool CheckSteam()
     {
         if (!string.IsNullOrEmpty(steamID) && steamID != "0")
             return true;
-        return false;
+        else
+            return false;
     }
 
     /// <summary>
-    ///     Check if steam release is from experimental branch
+    /// Check if steam release is from experimental branch
     /// </summary>
     /// <returns>Experimental detected.</returns>
     public static bool CheckIfExperimental()
@@ -60,21 +56,21 @@ public partial class ModLoader
 #if !Mini
         if (!CheckSteam())
         {
-            Console.WriteLine(
-                "Cannot check if the experimental branch is being used or not because no valid steam installation was detected");
+            System.Console.WriteLine("Cannot check if the experimental branch is being used or not because no valid steam installation was detected");
             return false;
         }
-
-        var ret = SteamApps.GetCurrentBetaName(out var Name, 128);
+        bool ret = Steamworks.SteamApps.GetCurrentBetaName(out string Name, 128);
         if (ret)
+        {
             if (!Name.StartsWith("default_")) //default is NOT experimental branch
                 return true;
+        }
 #endif
         return false;
     }
 
     /// <summary>
-    ///     Get Current Game Scene
+    /// Get Current Game Scene
     /// </summary>
     /// <returns>CurrentScene enum</returns>
     public static CurrentScene GetCurrentScene()
@@ -83,7 +79,7 @@ public partial class ModLoader
     }
 
     /// <summary>
-    ///     Get Mod class of modID
+    /// Get Mod class of modID
     /// </summary>
     /// <param name="modID">Mod ID of other mod to check (Case sensitive)</param>
     /// <param name="ignoreEnabled">Include disabled mods [yes it's DUMB proloader variable name]</param>
@@ -91,9 +87,14 @@ public partial class ModLoader
     [Obsolete("Proloader BS", true)]
     public static Mod GetMod(string modID, bool ignoreEnabled = false)
     {
-        if (IsModPresent(modID)) return LoadedMods.Where(x => x.ID.Equals(modID) && !x.isDisabled).FirstOrDefault();
-
-        if (ignoreEnabled) return LoadedMods.Where(x => x.ID.Equals(modID)).FirstOrDefault();
+        if (IsModPresent(modID))
+        {
+            return LoadedMods.Where(x => x.ID.Equals(modID) && !x.isDisabled).FirstOrDefault();
+        }
+        else if (ignoreEnabled)
+        {
+            return LoadedMods.Where(x => x.ID.Equals(modID)).FirstOrDefault();
+        }
         return null;
     }
 
@@ -104,11 +105,10 @@ public partial class ModLoader
     /// <returns>Version number as string</returns>
     public static string GetModVersionByID(string modID)
     {
-        var m = GetModByID(modID, true);
+        Mod m = GetModByID(modID, true);
         if (m == null)
             return "0.0.0.0";
-        
-            return m.Version;
+        return m.Version;
     }
 
     /// <summary>
@@ -123,76 +123,52 @@ public partial class ModLoader
             return refs.AssemblyFileVersion;
         return "0.0.0.0";
     }
-
     /// <summary>
-    ///     Check if Reference of specified AssemblyID is present
+    /// Check if Reference of specified AssemblyID is present
     /// </summary>
     /// <param name="AssemblyID">AssemblyID of reference to check (Case sensitive)</param>
     /// <returns>true if AssemblyID is present</returns>
     public static bool IsReferencePresent(string AssemblyID)
     {
-        var refs = Instance.ReferencesList.Where(x => x.AssemblyID.Equals(AssemblyID)).FirstOrDefault();
+        References refs = Instance.ReferencesList.Where(x => x.AssemblyID.Equals(AssemblyID)).FirstOrDefault();
         if (refs != null)
             return true;
         return false;
     }
 
     /// <summary>
-    ///     Check if other ModID is present and enabled
+    /// Check if other ModID is present and enabled
     /// </summary>
     /// <param name="ModID">Mod ID of other mod to check (Case sensitive)</param>
     /// <returns>true if mod ID is present</returns>
-    public static bool IsModPresent(string ModID)
-    {
-        var m = LoadedMods.Where(x => x.ID.Equals(ModID) && !x.isDisabled).FirstOrDefault();
-        if (m != null)
-            return true;
-        return false;
-    }
+    public static bool IsModPresent(string ModID) => LoadedMods.Any(x => x.ID.Equals(ModID) && !x.isDisabled);
 
     /// <summary>
-    ///     Check if other ModID is present
+    /// Check if other ModID is present
     /// </summary>
     /// <param name="ModID">Mod ID of other mod to check (Case sensitive)</param>
     /// <param name="includeDisabled">Include disabled mods</param>
     /// <returns>true if mod ID is present</returns>
-    public static bool IsModPresent(string ModID, bool includeDisabled)
-    {
-        if (includeDisabled)
-        {
-            var m = LoadedMods.Where(x => x.ID.Equals(ModID)).FirstOrDefault();
-            if (m != null)
-                return true;
-        }
-
-        return IsModPresent(ModID);
-    }
+    public static bool IsModPresent(string ModID, bool includeDisabled) => includeDisabled ? LoadedMods.Any(x => x.ID.Equals(ModID)) : IsModPresent(ModID);
 
     /// <summary>
-    ///     [compatibility only]
+    /// [compatibility only]
     /// </summary>
     /// <param name="mod">Your mod Class.</param>
     /// <param name="create">DOES NOTHING</param>
     /// <returns></returns>
     [Obsolete("This overload is compatibility only", true)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static string GetModSettingsFolder(Mod mod, bool create = true)
-    {
-        return GetModSettingsFolder(mod);
-    }
-
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public static string GetModSettingsFolder(Mod mod, bool create = true) => GetModSettingsFolder(mod);
     /// <summary>
-    ///     Mod settings folder, use this if you want save something.
+    /// Mod settings folder, use this if you want save something. 
     /// </summary>
     /// <returns>Path to your mod settings folder</returns>
     /// <param name="mod">Your mod Class.</param>
-    public static string GetModSettingsFolder(Mod mod)
-    {
-        return Path.Combine(SettingsFolder, mod.ID);
-    }
+    public static string GetModSettingsFolder(Mod mod) => Path.Combine(SettingsFolder, mod.ID);
 
     /// <summary>
-    ///     [Obsolete] Change to GetModSettingsFolder()
+    /// [Obsolete] Change to GetModSettingsFolder()
     /// </summary>
     /// <returns>Path to your mod config folder</returns>
     /// <param name="mod">Your mod Class.</param>
@@ -203,28 +179,24 @@ public partial class ModLoader
     }
 
     /// <summary>
-    ///     Mod assets folder, use this if you want load custom content.
+    /// Mod assets folder, use this if you want load custom content. 
     /// </summary>
     /// <returns>Path to your mod assets folder</returns>
     /// <param name="mod">Your mod Class.</param>
     public static string GetModAssetsFolder(Mod mod)
     {
-        if (!Directory.Exists(Path.Combine(AssetsFolder, mod.ID)))
-            Directory.CreateDirectory(Path.Combine(AssetsFolder, mod.ID));
+        if (!Directory.Exists(Path.Combine(AssetsFolder, mod.ID))) Directory.CreateDirectory(Path.Combine(AssetsFolder, mod.ID));
         return Path.Combine(AssetsFolder, mod.ID);
     }
 
     /// <summary>
-    ///     [compatibility only]
+    /// [compatibility only]
     /// </summary>
     /// <param name="mod">Your mod Class.</param>
     /// <param name="create">DOES NOTHING</param>
     /// <returns></returns>
     [Obsolete("This overload is compatibility only", true)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static string GetModAssetsFolder(Mod mod, bool create = true)
-    {
-        return GetModAssetsFolder(mod);
-    }
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public static string GetModAssetsFolder(Mod mod, bool create = true) => GetModAssetsFolder(mod);
 }
 #endif

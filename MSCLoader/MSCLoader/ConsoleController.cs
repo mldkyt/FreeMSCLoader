@@ -42,6 +42,7 @@ internal class ConsoleController
     internal Dictionary<string, CommandRegistration> commands = new();
 
     public string[] log { get; private set; } //Copy of scrollback as an array for easier use by ConsoleView
+    internal bool pauseDequeue = false;
 #if !Mini
     public ConsoleController()
     {
@@ -74,7 +75,7 @@ internal class ConsoleController
 
     public void AppendLogLine(string line)
     {
-        if (scrollback.Count >= scrollbackSize)
+        if (scrollback.Count >= scrollbackSize && !pauseDequeue)
         {
             if (scrollback.Dequeue().StartsWith("<b></b>"))
             {

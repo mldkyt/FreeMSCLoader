@@ -1,5 +1,10 @@
 ﻿#if !Mini
+using Ionic.Zip;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 
 namespace MSCLoader;
 internal class RequiredList
@@ -11,6 +16,7 @@ internal class RequiredList
 internal class ModVersions
 {
     public List<MetaVersion> versions = new List<MetaVersion>();
+    public string notFound = string.Empty;
 }
 internal class MetaVersion
 {
@@ -42,12 +48,10 @@ internal class MSCLData
     public string icon;
     public MinimumRequirements minimumRequirements = new MinimumRequirements();
     public ModConflicts modConflicts = new ModConflicts();
-    public string sign;
+    public string sign = string.Empty;
     public int type = 1;
     public string msg;
     public int rev = 0;
-
-
 }
 internal class MinimumRequirements
 {

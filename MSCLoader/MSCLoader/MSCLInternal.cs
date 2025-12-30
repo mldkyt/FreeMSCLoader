@@ -1,9 +1,11 @@
-﻿#if !Mini
-using System.Text;
-using System;
+﻿#if !Mini 
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace MSCLoader;
 
@@ -271,13 +273,13 @@ internal static class ByteArrayExtensions
 
     // -----------------------------------------------------------------------------------
 
-    public static bool GetBitR(this byte[] bytearray, long bit)
+    private static bool GetBitR(this byte[] bytearray, long bit)
     {
         return ((bytearray[(bit / bitsinbyte) % bytearray.LongLength] >>
                 ((int)bit % bitsinbyte)) & 1) == 1;
     }
 
-    public static void SetBitR(byte[] bytearray, long bit, bool set)
+    private static void SetBitR(byte[] bytearray, long bit, bool set)
     {
         long bytepos = bit / bitsinbyte;
         if (bytepos < bytearray.LongLength)

@@ -14,7 +14,7 @@ internal class ModMenu : Mod
 {
     public override string ID => "MSCLoader_Settings";
     public override string Name => "[INTERNAL] Mod Menu";
-    public override string Version => ModLoader.FreeLoader_Ver;
+    public override string Version => ModLoader.MSCLoader_Ver;
     public override string Author => "MSCLoader";
 
     internal GameObject UI;
@@ -24,7 +24,6 @@ internal class ModMenu : Mod
     internal static SettingsCheckBox dm_logST, dm_operr, dm_warn, dm_pcon;
     internal static SettingsCheckBox expWarning, modPath, forceMenuVsync, openLinksOverlay, skipGameIntro, skipConfigScreen, filterAdPopups;
 
-    private static SettingsCheckBoxGroup checkLaunch, checkDaily, checkWeekly;
     private System.Diagnostics.FileVersionInfo coreVer, doorstopVer;
 
     public override void ModSetup()
@@ -69,7 +68,7 @@ internal class ModMenu : Mod
         Settings.AddHeader("Detailed Version Information", new Color32(0, 128, 0, 255));
         coreVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "MSCLoader.Preloader.dll"));
         doorstopVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine("", "winhttp.dll"));
-        SettingsText modulesVer = Settings.AddText($"MSCLoader modules:{Environment.NewLine}<color=yellow>Doorstop</color>: <color=aqua>v{doorstopVer.ProductVersion}</color>{Environment.NewLine}<color=yellow>MSCLoader.Preloader</color>: <color=aqua>v{coreVer.FileMajorPart}.{coreVer.FileMinorPart}.{coreVer.FileBuildPart} build {coreVer.FilePrivatePart}</color>{Environment.NewLine}<color=yellow>MSCLoader</color>: <color=aqua>v{ModLoader.FreeLoader_Ver} build {ModLoader.Instance.currentBuild}</color>");
+        SettingsText modulesVer = Settings.AddText($"MSCLoader modules:{Environment.NewLine}<color=yellow>Doorstop</color>: <color=aqua>v{doorstopVer.ProductVersion}</color>{Environment.NewLine}<color=yellow>MSCLoader.Preloader</color>: <color=aqua>v{coreVer.FileMajorPart}.{coreVer.FileMinorPart}.{coreVer.FileBuildPart} build {coreVer.FilePrivatePart}</color>{Environment.NewLine}<color=yellow>MSCLoader</color>: <color=aqua>v{ModLoader.MSCLoader_Ver} build {ModLoader.Instance.currentBuild}</color>");
         if (File.Exists(Path.Combine(ModLoader.ModsFolder, Path.Combine("References", "MSCCoreLibrary.dll"))))
         {
             System.Diagnostics.FileVersionInfo libVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ModsFolder, Path.Combine("References", "MSCCoreLibrary.dll")));
@@ -358,7 +357,7 @@ internal class ModMenu : Mod
                 SaveSettings(ModLoader.LoadedMods[i]); //create settings file if not exists.
                                                        //Load and deserialize 
             SettingsList settings = JsonConvert.DeserializeObject<SettingsList>(File.ReadAllText(path));
-            ModLoader.LoadedMods[i].isDisabled = settings.isDisabled;
+            //  ModLoader.LoadedMods[i].isDisabled = settings.isDisabled;
             if (!ModLoader.LoadedMods[i].isDisabled)
             {
                 try

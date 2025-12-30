@@ -99,7 +99,7 @@ public class ModUI
     /// Get UI canvas
     /// </summary>
     /// <returns>Canvas GameObject</returns>
-    [Obsolete("It is recommended to create your own canvas using CreateCanvas() instead.")]
+    [Obsolete("It is recommended to create your own canvas using CreateCanvas() instead.", true)]
     public static GameObject GetCanvas() => msclCanv;
 
     /// <summary>
@@ -112,7 +112,7 @@ public class ModUI
     public static MsgBoxBtn CreateMessageBoxBtn(string ButtonText, Action ifClicked = null, bool noClosing = false)
     {
         GameObject btn = GameObject.Instantiate(messageBoxCv.messageBoxBtnPrefab);
-        MsgBoxBtn msgBoxBtn = new MsgBoxBtn(ifClicked, btn.GetComponent<Button>(), noClosing);
+        MsgBoxBtn msgBoxBtn = new(ifClicked, btn.GetComponent<Button>(), noClosing);
         if (noClosing && ifClicked == null)
             ModConsole.Error("<b>CreateMessageBoxBtn()</b> - <b>ifClicked</b> cannot be null when <b>noClosing</b> is set to true");
         if (noClosing && ifClicked != null)
@@ -133,7 +133,7 @@ public class ModUI
     public static MsgBoxBtn CreateMessageBoxBtn(string ButtonText, Action ifClicked, Color32 BackgroundColor, Color32 TextColor, bool noClosing = false)
     {
         GameObject btn = GameObject.Instantiate(messageBoxCv.messageBoxBtnPrefab);
-        MsgBoxBtn msgBoxBtn = new MsgBoxBtn(ifClicked, btn.GetComponent<Button>(), noClosing);
+        MsgBoxBtn msgBoxBtn = new(ifClicked, btn.GetComponent<Button>(), noClosing);
         if (noClosing && ifClicked == null)
             ModConsole.Error("<b>CreateMessageBoxBtn()</b> - <b>ifClicked</b> cannot be null when <b>noClosing</b> is set to true");
         if (noClosing && ifClicked != null)
@@ -156,7 +156,7 @@ public class ModUI
     /// <param name="title">Title of message</param>
     public static void ShowMessage(string message, string title)
     {
-        MsgBoxBtn[] btn = { CreateMessageBoxBtn("OK") };
+        MsgBoxBtn[] btn = [CreateMessageBoxBtn("OK")];
         ShowCustomMessage(message, title, btn);
     }
 
@@ -175,7 +175,7 @@ public class ModUI
     /// <param name="ifYes">What to do when user click yes</param>
     public static void ShowYesNoMessage(string message, string title, Action ifYes)
     {
-        MsgBoxBtn[] btn = { CreateMessageBoxBtn("YES", ifYes), CreateMessageBoxBtn("NO") };
+        MsgBoxBtn[] btn = [CreateMessageBoxBtn("YES", ifYes), CreateMessageBoxBtn("NO")];
         ShowCustomMessage(message, title, btn);
     }
 
@@ -198,6 +198,10 @@ public class ModUI
     /// <param name="buttons2">A place to add "second row" of buttons.</param>
     public static void ShowCustomMessage(string message, string title, MsgBoxBtn[] buttons, MsgBoxBtn[] buttons2)
     {
+        SpawnMessageBox(message, title, buttons, buttons2, false);
+    }
+    internal static void SpawnMessageBox(string message, string title, MsgBoxBtn[] buttons, MsgBoxBtn[] buttons2, bool scrollable, TextAlignment textAlignment = TextAlignment.Center)
+    {
         bool isBeggingAdPopup = false;
         if (buttons == null || buttons.Length == 0)
         {
@@ -214,10 +218,15 @@ public class ModUI
             Console.WriteLine($"Filtered message: {message}"); //add message to log for reference and potential false positives
             return;
         }
-        GameObject mb = GameObject.Instantiate(messageBoxCv.messageBoxPrefab);
+        GameObject mb;
+        if (scrollable)
+            mb = GameObject.Instantiate(messageBoxCv.messageBoxScrollablePrefab);
+        else
+            mb = GameObject.Instantiate(messageBoxCv.messageBoxPrefab);
         MessageBoxHelper mbh = mb.GetComponent<MessageBoxHelper>();
         mbh.messageBoxTitle.text = title.ToUpper();
         mbh.messageBoxContent.text = message;
+        mbh.messageBoxContent.alignment = (TextAnchor)(textAlignment + 3);
         for (int i = 0; i < buttons.Length; i++)
         {
             if (buttons[i].IfClicked != null)
@@ -278,13 +287,20 @@ public class ModUI
 
         mb.transform.SetParent(messageBoxCv.transform, false);
         mb.SetActive(true);
+
+        if (!scrollable)
+        {
+            mbh.convertToScrollable = delegate
+            {
+                GameObject.Destroy(mb);
+                SpawnMessageBox(message, title, buttons, buttons2, true, textAlignment);
+            };
+        }
     }
 
     internal static void ShowChangelogWindow(string content)
     {
-        messageBoxCv.changelogText.text = content;
-        messageBoxCv.changelogWindow.SetActive(true);
-        messageBoxCv.changelogWindow.transform.SetAsLastSibling();
+        SpawnMessageBox(content, "<color=aqua>Changelog</color>", [CreateMessageBoxBtn("CLOSE", null, Color.black, Color.yellow)], null, true, TextAlignment.Left);
     }
     /// <summary>
     /// Create Popup Setting Window
@@ -330,7 +346,7 @@ public class PopupSetting
             {
                 case SettingsType.CheckBox:
                     SettingsCheckBox ss = (SettingsCheckBox)s;
-                    json.Add($"\"{ss.ID}\":{ss.GetValue()}");
+                    json.Add($"\"{ss.ID}\":{ss.GetValue().ToString().ToLower()}");
                     break;
                 case SettingsType.Slider:
                     SettingsSlider ss2 = (SettingsSlider)s;
@@ -344,16 +360,20 @@ public class PopupSetting
                     SettingsTextBox ss4 = (SettingsTextBox)s;
                     json.Add($"\"{ss4.ID}\":{JsonConvert.ToString(ss4.GetValue())}");
                     break;
+                case SettingsType.TextArea:
+                    SettingsTextArea ss5 = (SettingsTextArea)s;
+                    json.Add($"\"{ss5.ID}\":{JsonConvert.ToString(ss5.GetValue())}");
+                    break;
                 case SettingsType.DropDown:
-                    SettingsDropDownList ss5 = (SettingsDropDownList)s;
-                    json.Add($"\"{ss5.ID}\":{ss5.GetSelectedItemIndex()}");
+                    SettingsDropDownList ss6 = (SettingsDropDownList)s;
+                    json.Add($"\"{ss6.ID}\":{ss6.GetSelectedItemIndex()}");
                     break;
                 default:
                     break;
             }
         }
 
-        return "{" + $"{string.Join(",", json.ToArray())}" + "}";
+        return $"{{{string.Join(",", [.. json])}}}";
     }
     /// <summary>
     /// Show popup window
@@ -520,6 +540,21 @@ public class PopupSetting
         return s;
     }
 
+    /// <summary>
+    /// Add Text Area where user can type any multiline text (string value returns on confirm)
+    /// </summary>
+    /// <param name="settingID">Your unique settings ID</param>
+    /// <param name="name">Name of text box</param>
+    /// <param name="value">Default TextBox value</param>
+    /// <param name="placeholderText">Placeholder text (like "Enter text...")</param>
+    /// <param name="visibleByDefault">Show text box by default (default true)</param>
+    /// <returns>SettingsTextArea</returns>
+    public SettingsTextArea AddTextArea(string settingID, string name, string value, string placeholderText, bool visibleByDefault = true)
+    {
+        SettingsTextArea s = new SettingsTextArea(settingID, name, value, placeholderText, visibleByDefault);
+        settingElements.Add(s);
+        return s;
+    }
     /// <summary>
     /// Add DropDown List to popup menu (int [array index] value returns on confirm)
     /// </summary>
