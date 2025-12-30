@@ -60,7 +60,7 @@ public static class LoadAssets
         throw new NotSupportedException(
             $"<b>LoadTexture() Error:</b> Texture not supported: {fileName}{Environment.NewLine}");
     }
-
+    #if MSC
     /// <summary>
     ///     Load (*.obj) file from mod assets folder and return as GameObject
     /// </summary>
@@ -118,7 +118,7 @@ public static class LoadAssets
         throw new NotSupportedException(
             $"<b>LoadOBJ() Error:</b> Only (*.obj) files are supported{Environment.NewLine}");
     }
-
+#endif
 
     /// <summary>
     ///     Loads assetbundle from Assets folder

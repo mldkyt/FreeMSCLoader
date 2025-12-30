@@ -74,13 +74,17 @@ internal class ModMenu : Mod
             System.Diagnostics.FileVersionInfo libVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ModsFolder, Path.Combine("References", "MSCCoreLibrary.dll")));
             modulesVer.SetValue(modulesVer.GetValue() + $"{Environment.NewLine}<color=yellow>MSCCoreLibrary</color>: <color=aqua>v{libVer.FileMajorPart}.{libVer.FileMinorPart}.{libVer.FileBuildPart} build {libVer.FilePrivatePart}</color>");
         }
-        Settings.AddText($"Build-in libraries:{Environment.NewLine}<color=yellow>Harmony</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "0Harmony.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>Ionic.Zip</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Ionic.Zip.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>NAudio</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>NAudio (Vorbis)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NVorbis.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>NAudio (Flac)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.Flac.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>Newtonsoft.Json</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Newtonsoft.Json.dll")).FileVersion}</color>{Environment.NewLine}" +
-            $"<color=yellow>INIFileParser</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "INIFileParser.dll")).FileVersion}</color>");
+        try
+        {
+            Settings.AddText($"Build-in libraries:{Environment.NewLine}<color=yellow>Harmony</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "0Harmony.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>Ionic.Zip</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Ionic.Zip.Reduced.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio (Vorbis)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NVorbis.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio (Flac)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.Flac.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>Newtonsoft.Json</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Newtonsoft.Json.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>INIFileParser</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "INIFileParser.dll")).FileVersion}</color>");
+        }
+        catch (Exception e) { Console.WriteLine(e); }
     }
 
     private void Mod_SettingsLoaded()
@@ -148,7 +152,7 @@ internal class ModMenu : Mod
         }
         catch (Exception e)
         {
-            ModUI.ShowMessage($"Fatal error:{Environment.NewLine}<color=orange>{e.Message}</color>{Environment.NewLine}Please install MSCLoader correctly.", "Fatal Error");
+            ModUI.ShowMessage($"Fatal error:{Environment.NewLine}<color=orange>{e.Message}</color>{Environment.NewLine}Please reinstall MSCLoader to fix this issue", "Fatal Error");
         }
     }
 
@@ -156,6 +160,11 @@ internal class ModMenu : Mod
     {
         AssetBundle ab = LoadAssets.LoadBundle(this, "settingsui.unity3d");
         GameObject UIp = ab.LoadAsset<GameObject>("MSCLoader Canvas menu.prefab");
+        TextAsset assetver = ab.LoadAsset<TextAsset>("version.txt");
+        if (assetver == null || !MSCLInfo.BuildType.StartsWith(assetver.text.Split('|')[0]) || !MSCLInfo.menuAssetVersion.Equals(assetver.text.Split('|')[1])) 
+        {
+            throw new Exception($"Invalid MSCLoader asset file version (<color=aqua>settingsui.unity3d</color>), do not replace random MSCLoader files with other versions.{Environment.NewLine}");
+        }
         UI = GameObject.Instantiate(UIp);
         GameObject.DontDestroyOnLoad(UI);
         GameObject.Destroy(UIp);
@@ -373,6 +382,7 @@ internal class ModMenu : Mod
                     }
                     else
                     {
+#if MSC
                         if (ModLoader.LoadedMods[i].LoadInMenu && ModLoader.LoadedMods[i].fileName != null)
                         {
                             Console.WriteLine($"Calling OnMenuLoad [old format] (for mod {ModLoader.LoadedMods[i].ID})");
@@ -385,6 +395,7 @@ internal class ModMenu : Mod
                             ModLoader.LoadedMods[i].MenuOnLoad();
                             ModLoader.LoadedMods[i].disableWarn = true;
                         }
+#endif
                     }
                 }
                 catch (Exception e)
@@ -445,8 +456,10 @@ internal class ModMenu : Mod
                             ModLoader.LoadedMods[i].A_ModSettingsLoaded.Invoke();
                         }
                     }
+#if MSC
                     else
                         ModLoader.LoadedMods[i].ModSettingsLoaded();
+#endif
                 }
             }
             catch (Exception e)

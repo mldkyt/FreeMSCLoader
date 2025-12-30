@@ -1,96 +1,102 @@
-﻿using System;
+﻿using IniParser;
+using IniParser.Model;
+using Ionic.Zip;
+using System;
 using System.IO;
-using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using IniParser;
-using Ionic.Zip;
 
-namespace MSCLInstaller;
-
-/// <summary>
-/// Interaction logic for InstallProgress.xaml
-/// </summary>
-public partial class InstallProgress
+namespace MSCLInstaller
 {
-    private readonly MainWindow main;
-    private readonly Progress<(string text, string log)> progressLog = new();
-    private readonly Progress<(int percent, int max, bool isIndeterminate)> progress = new();
-
-    public InstallProgress(MainWindow m)
+    /// <summary>
+    /// Interaction logic for InstallProgress.xaml
+    /// </summary>
+    public partial class InstallProgress : Page
     {
-        InitializeComponent();
-        LogBox.Clear();
-        progressLog.ProgressChanged += (_, e) =>
+        MainWindow main;
+        private Progress<(string text, string log)> progressLog = new();
+        private Progress<(int percent, int max, bool isIndeterminate)> progress = new();
+
+        public InstallProgress(MainWindow m)
         {
-            ProgressText.Text = e.text;
-            AddLog(e.log);
-        };
-        progress.ProgressChanged += (_, e) =>
+            InitializeComponent();
+            LogBox.Clear();
+            progressLog.ProgressChanged += (_, e) =>
+            {
+                ProgressText.Text = e.text;
+                AddLog(e.log);
+            };
+            progress.ProgressChanged += (_, e) =>
+            {
+                progressBar.IsIndeterminate = e.isIndeterminate;
+                progressBar.Maximum = e.max;
+                progressBar.Value = e.percent;
+            };
+            main = m;
+        }
+
+        internal async void ChangeModsFolder(ModsFolder newfolder, bool deleteTarget)
         {
-            ProgressBar.IsIndeterminate = e.isIndeterminate;
-            ProgressBar.Maximum = e.max;
-            ProgressBar.Value = e.percent;
-        };
-        main = m;
-    }
+            AddLog("Changing Mods Folder...");
+            bool failed = await Task.Run(() => ChangeModsFolderWork(newfolder, deleteTarget, progressLog, progress));
+            if (failed) return;
+            if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
+            {
+                main.ReInitInstallerPage();
+                main.MSCLoaderInstallerPage();
+            }
+        }
+        internal async void ChangeModsFolderAndCopyAsync(string oldPath, ModsFolder newFolder)
+        {
+            AddLog("Changing Mods Folder...");
+            bool failed = await Task.Run(() => ChangeModsFolderWork(newFolder, true, progressLog, progress));
+            if (failed) return;
+            AddLog($"Copying mods from {oldPath} to {Storage.modsPath}...");
+            progressBar.Maximum = 100;
+            bool failed2 = await Task.Run(() => ChangeModsFolderAndCopyWork(oldPath, progressLog, progress));
+            if (failed2) return;
+            if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
+            {
+                main.ReInitInstallerPage();
+                main.MSCLoaderInstallerPage();
+            }
+        }
+        internal async void UninstalMSCLoader()
+        {
+            AddLog("Uninstalling MSCLoader...");
+            bool failed = await Task.Run(() => UninstallMSCLoaderWork(progressLog, progress));
+            if (failed) return;
+            if (MessageBox.Show("Uninstall Complete", "Uninstalling MSCLoader", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
+            {
+                main.ReInitInstallerPage();
+                main.MSCLoaderInstallerPage();
+            }
+        }
 
-    internal void ChangeModsFolder(ModsFolder newfolder, bool deleteTarget)
-    {
-        AddLog("Changing Mods Folder...");
-        var failed = ChangeModsFolderWork(newfolder, deleteTarget, progressLog, progress);
-        if (failed) return;
-        if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK,
-                MessageBoxImage.Information) != MessageBoxResult.OK) return;
-        main.ReInitInstallerPage();
-        main.FreeMscLoaderInstallerPage();
-    }
-    internal void ChangeModsFolderAndCopyAsync(string oldPath, ModsFolder newFolder)
-    {
-        AddLog("Changing Mods Folder...");
-        var failed = ChangeModsFolderWork(newFolder, true, progressLog, progress);
-        if (failed) return;
-        AddLog($"Copying mods from {oldPath} to {Storage.modsPath}...");
-        ProgressBar.Maximum = 100;
-        var failed2 = ChangeModsFolderAndCopyWork(oldPath, progressLog, progress);
-        if (failed2) return;
-        if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK,
-                MessageBoxImage.Information) != MessageBoxResult.OK) return;
-        main.ReInitInstallerPage();
-        main.FreeMscLoaderInstallerPage();
-    }
-    internal void UninstallFreeMscLoader()
-    {
-        AddLog("Uninstalling FreeMSCLoader...");
-        var failed = UninstallFreeMscLoaderWork(progressLog, progress);
-        if (failed) return;
-        if (MessageBox.Show("Uninstall Complete", "Uninstalling FreeMSCLoader", MessageBoxButton.OK,
-                MessageBoxImage.Information) != MessageBoxResult.OK) return;
-        main.ReInitInstallerPage();
-        main.FreeMscLoaderInstallerPage();
-    }
+        internal async void InstallMSCLoader(ModsFolder modsfolder)
+        {
+            AddLog("Installing MSCLoader...");
+            bool failed = await Task.Run(() => InstallMSCLoaderWork(modsfolder, progressLog, progress));
+            if (failed) return;
+            if (MessageBox.Show("Install Complete", "Install MSCLoader", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
+            {
+                main.ReInitInstallerPage();
+                main.MSCLoaderInstallerPage();
+            }
+        }
 
-    internal void InstallFreeMscLoader(ModsFolder modsfolder)
-    {
-        AddLog("Installing FreeMSCLoader...");
-        var failed = InstallFreeMscLoaderWork(modsfolder, progressLog, progress);
-        if (failed) return;
-        if (MessageBox.Show("Install Complete", "Install FreeMSCLoader", MessageBoxButton.OK,
-                MessageBoxImage.Information) != MessageBoxResult.OK) return;
-        main.ReInitInstallerPage();
-        main.FreeMscLoaderInstallerPage();
-    }
-
-    internal void UpdateFreeMscLoader(bool updateCore, bool updateRefs, bool updateMscl)
-    {
-        AddLog("Updating FreeMSCLoader...");
-        var failed = UpdateFreeMscLoaderWork(updateCore, updateRefs, updateMscl, progressLog, progress);
-        if (failed) return;
-        if (MessageBox.Show("Update Complete", "Update FreeMSCLoader", MessageBoxButton.OK,
-                MessageBoxImage.Information) != MessageBoxResult.OK) return;
-        main.ReInitInstallerPage();
-        main.FreeMscLoaderInstallerPage();
-    }
+        internal async void UpdateMSCLoader(bool updateCore, bool updateRefs, bool updateMSCL)
+        {
+            AddLog("Updating MSCLoader...");
+            bool failed = await Task.Run(() => UpdateMSCLoaderWork(updateCore, updateRefs, updateMSCL, progressLog, progress));
+            if (failed) return;
+            if (MessageBox.Show("Update Complete", "Update MSCLoader", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
+            {
+                main.ReInitInstallerPage();
+                main.MSCLoaderInstallerPage();
+            }
+        }
 
         private bool ChangeModsFolderWork(ModsFolder newfolder, bool deleteTarget, IProgress<(string text, string log)> progressLog, IProgress<(int percent, int max, bool isIndeterminate)> progress)
         {
@@ -114,38 +120,45 @@ public partial class InstallProgress
                     progress.Report((0, 5, false));
 
 
-                Directory.CreateDirectory(Storage.modsPath);
-                progressLog.Report(($"Creating: {Storage.modsPath}", $"Creating.....{Storage.modsPath}"));
-                progress.Report((1, 5, false));
+                    Directory.CreateDirectory(Storage.modsPath);
+                    progressLog.Report(($"Creating: {Storage.modsPath}", $"Creating.....{Storage.modsPath}"));
+                    progress.Report((1, 5, false));
 
-                Directory.CreateDirectory(Path.Combine(Storage.modsPath, "Assets"));
-                progressLog.Report(("Creating Assets folder", $"Creating.....{Path.Combine(Storage.modsPath, "Assets")}"));
-                progress.Report((2, 5, false));
+                    Directory.CreateDirectory(Path.Combine(Storage.modsPath, "Assets"));
+                    progressLog.Report(($"Creating Assets folder", $"Creating.....{Path.Combine(Storage.modsPath, "Assets")}"));
+                    progress.Report((2, 5, false));
 
-                Directory.CreateDirectory(Path.Combine(Storage.modsPath, "References"));
-                progressLog.Report(("Creating References folder", $"Creating.....{Path.Combine(Storage.modsPath, "References")}"));
-                progress.Report((3, 5, false));
+                    Directory.CreateDirectory(Path.Combine(Storage.modsPath, "References"));
+                    progressLog.Report(($"Creating References folder", $"Creating.....{Path.Combine(Storage.modsPath, "References")}"));
+                    progress.Report((3, 5, false));
+                }
+                catch (Exception e)
+                {
+                    progressLog.Report(("Failed", e.ToString()));
+                    MessageBox.Show($"Failed to create folder structure.{Environment.NewLine}{Environment.NewLine} {e.Message}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return true;
+                }
             }
-            catch (Exception e)
+
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true))
             {
-                progressLog.Report(("Failed", e.ToString()));
-                MessageBox.Show($"Failed to create folder structure.{Environment.NewLine}{Environment.NewLine} {e.Message}", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
+                progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
                 return true;
             }
-        }
 
-        if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true) || !ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false))
-        {
-            MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
-            progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
-            return true;
-        }
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false))
+            {
+                MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
+                progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
+                return true;
+            }
 
-        Directory.Delete(Path.Combine(Storage.currentPath, "temp"), true);
-        progress.Report((5, 5, false));
-        progressLog.Report(("Done", "Done!"));
-        return false;
-    }
+            Directory.Delete(Path.Combine(Storage.currentPath, "temp"), true);
+            progress.Report((5, 5, false));
+            progressLog.Report(("Done", "Done!"));
+            return failed;
+        }
 
         private bool ChangeModsFolderAndCopyWork(string oldPath, IProgress<(string text, string log)> progressLog, IProgress<(int percent, int max, bool isIndeterminate)> progress)
         {
@@ -211,15 +224,17 @@ public partial class InstallProgress
 
             try
             {
-                ZipFile zip1 = ZipFile.Read(Path.Combine(Storage.currentPath, "main_ref.pack"));
-                max = zip1.Entries.Count + 3;
-                for (int i = 0; i < zip1.Entries.Count; i++)
+                using (ZipFile zip = ZipFile.Read(Path.Combine(Storage.currentPath, "main_ref.pack")))
                 {
-                    ZipEntry zz = zip1[i];
-                    progressLog.Report(($"Deleting {zz.FileName}", $"Deleting.....{zz.FileName}"));
-                    DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed" + zz.FileName));
-                    progress.Report((i, max, false));
+                    max = zip.Entries.Count + 3;
+                    for (int i = 0; i < zip.Entries.Count; i++)
+                    {
+                        ZipEntry zz = zip[i];
+                        progressLog.Report(($"Deleting {zz.FileName}", $"Deleting.....{zz.FileName}"));
+                        DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", zz.FileName));
+                        progress.Report((i, max, false));
 
+                    }
                 }
             }
             catch (Exception ex)
@@ -396,107 +411,123 @@ public partial class InstallProgress
                 }
                 else
                 {
-                    ZipFile zip1 = ZipFile.Read(fn);
-                    progressLog.Report(($"Reading file: {Path.GetFileName(fn)}", $"Reading file.....{Path.GetFileName(fn)}"));
-                    if (!isTemp)
-                        progress.Report((0, zip1.Entries.Count, false));
+                    using (ZipFile zip = ZipFile.Read(fn))
+                    {
+                        progressLog.Report(($"Reading file: {Path.GetFileName(fn)}", $"Reading file.....{Path.GetFileName(fn)}"));
+                        if (!isTemp)
+                            progress.Report((0, zip.Entries.Count, false));
 
 
-            for (var i = 0; i < zip1.Entries.Count; i++)
-            {
-                var zz = zip1[i];
-                if (!isTemp)
-                {
-                    progressLog.Report(($"Copying file: {zz.FileName}", $"Copying file.....{zz.FileName}"));
-                    progress.Report((i, zip1.Entries.Count, false));
+                        for (int i = 0; i < zip.Entries.Count; i++)
+                        {
+                            ZipEntry zz = zip[i];
+                            if (!isTemp)
+                            {
+                                progressLog.Report(($"Copying file: {zz.FileName}", $"Copying file.....{zz.FileName}"));
+                                progress.Report((i, zip.Entries.Count, false));
+                            }
+                            zz.Extract(target, ExtractExistingFileAction.OverwriteSilently);
+
+
+                        }
+                    }
                 }
-                zz.Extract(target, ExtractExistingFileAction.OverwriteSilently);
 
-
-            }
-            zip1.Dispose();
-
-            return true;
-        }
-        catch (Exception e)
-        {
-            progressLog.Report(($"Failed to extract files {e.Message}", $"Failed to extract files{Environment.NewLine}{e}"));
-            return false;
-        }
-    }
-    private static void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
-    {
-        // Get information about the source directory
-        var dir = new DirectoryInfo(sourceDir);
-
-        // Check if the source directory exists
-        if (!dir.Exists)
-            throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
-
-        // Cache directories before we start copying
-        var dirs = dir.GetDirectories();
-
-        // Create the destination directory
-        Directory.CreateDirectory(destinationDir);
-
-        // Get the files in the source directory and copy to the destination directory
-        foreach (var file in dir.GetFiles())
-        {
-            var targetFilePath = Path.Combine(destinationDir, file.Name);
-            file.CopyTo(targetFilePath);
-        }
-
-        // If recursive and copying subdirectories, recursively call this method
-        if (!recursive) return;
-        foreach (var subDir in dirs)
-        {
-            var newDestinationDir = Path.Combine(destinationDir, subDir.Name);
-            CopyDirectory(subDir.FullName, newDestinationDir, true);
-        }
-    }
-    private bool UpdateConfigFile(ModsFolder modsFolder, IProgress<(string text, string log)> progressLog)
-    {
-        var newCfg = modsFolder switch
-        {
-            ModsFolder.GameFolder => "GF",
-            ModsFolder.MyDocuments => "MD",
-            ModsFolder.Appdata => "AD",
-            _ => "GF"
-        };
-
-        if (File.Exists(Path.Combine(Storage.mscPath, "doorstop_config.ini")))
-        {
-            try
-            {
-                progressLog.Report(("Reading: doorstop_config.ini", "Reading.....doorstop_config.ini"));
-                var ini = new FileIniDataParser().ReadFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
-
-                ini["MSCLoader"]["mods"] = newCfg;
-                ini["MSCLoader"]["skipIntro"] = Storage.skipIntroCfg.ToString().ToLower();
-                ini["MSCLoader"]["skipConfigScreen"] = Storage.skipConfigScreenCfg.ToString().ToLower();
-                progressLog.Report(("Writing: doorstop_config.ini", "Writing.....doorstop_config.ini"));
-                new FileIniDataParser().WriteFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"), ini, Encoding.ASCII);
-
+                return true;
             }
             catch (Exception e)
             {
-                progressLog.Report(("ERROR: Failed to update doorstop_config.ini", e.ToString()));
-                MessageBox.Show($"ERROR: Failed to update doorstop_config.ini{Environment.NewLine}{Environment.NewLine}{e.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                progressLog.Report(($"Failed to extract files {e.Message}", $"Failed to extract files{Environment.NewLine}{e}"));
                 return false;
             }
-            return true;
         }
-
-        //This is probably super outdated MSCLoader.
-        progressLog.Report(("ERROR: doorstop_config.ini does not exist", "ERROR: doorstop_config.ini does not exist"));
-        progressLog.Report(("ERROR: doorstop_config.ini does not exist", "Please re-install MSCLoader first."));
-        return false;
-    }
-    private static void DeleteIfExists(string filename)
-    {
-        if (File.Exists(filename))
+        private void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
         {
-            File.Delete(filename);
+            // Get information about the source directory
+            DirectoryInfo dir = new DirectoryInfo(sourceDir);
+
+            // Check if the source directory exists
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            // Cache directories before we start copying
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            // If recursive and copying subdirectories, recursively call this method
+            if (recursive)
+            {
+                foreach (DirectoryInfo subDir in dirs)
+                {
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    CopyDirectory(subDir.FullName, newDestinationDir, true);
+                }
+            }
+        }
+        private bool UpdateConfigFile(ModsFolder modsFolder, IProgress<(string text, string log)> progressLog, IProgress<(int percent, int max, bool isIndeterminate)> progress)
+        {
+            string newCfg = "GF";
+            switch (modsFolder)
+            {
+                case ModsFolder.GameFolder:
+                    newCfg = "GF";
+                    break;
+                case ModsFolder.MyDocuments:
+                    newCfg = "MD";
+                    break;
+                case ModsFolder.Appdata:
+                    newCfg = "AD";
+                    break;
+                default:
+                    //The fuck happened here?
+                    break;
+            }
+
+            if (File.Exists(Path.Combine(Storage.mscPath, "doorstop_config.ini")))
+            {
+                try
+                {
+                    progressLog.Report(("Reading: doorstop_config.ini", "Reading.....doorstop_config.ini"));
+                    IniData ini = new FileIniDataParser().ReadFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
+
+                    ini["MSCLoader"]["mods"] = newCfg;
+                    ini["MSCLoader"]["skipIntro"] = Storage.skipIntroCfg.ToString().ToLower();
+                    ini["MSCLoader"]["skipConfigScreen"] = Storage.skipConfigScreenCfg.ToString().ToLower();
+                    progressLog.Report(("Writing: doorstop_config.ini", "Writing.....doorstop_config.ini"));
+                    new FileIniDataParser().WriteFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"), ini, System.Text.Encoding.ASCII);
+
+                }
+                catch (Exception e)
+                {
+                    progressLog.Report(("ERROR: Failed to update doorstop_config.ini", e.ToString()));
+                    MessageBox.Show($"ERROR: Failed to update doorstop_config.ini{Environment.NewLine}{Environment.NewLine}{e.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                //This is probably super outdated MSCLoader.
+                progressLog.Report(("ERROR: doorstop_config.ini does not exist", "ERROR: doorstop_config.ini does not exist"));
+                progressLog.Report(("ERROR: doorstop_config.ini does not exist", "Please re-install MSCLoader first."));
+                return false;
+            }
+        }
+        private void DeleteIfExists(string filename)
+        {
+            if (File.Exists(filename))
+            {
+                File.Delete(filename);
+            }
         }
     }
 }

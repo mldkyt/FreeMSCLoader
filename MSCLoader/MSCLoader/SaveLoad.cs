@@ -455,7 +455,7 @@ public class SaveLoad
         if (!ES2.Exists($"Mods.txt?tag={mod.ID}||{valueID}")) return;
         ES2.Delete($"Mods.txt?tag={mod.ID}||{valueID}");
     }
-
+#if MSC
     /// <summary>
     ///     Save position and rotation of single gameobject to file (DO NOT loop this for multiple gameobjects)
     ///     Call this in <see cref="Mod.OnSave" />  function
@@ -500,7 +500,9 @@ public class SaveLoad
         go.transform.position = data.save[0].pos;
         go.transform.eulerAngles = new Vector3(data.save[0].rotX, data.save[0].rotY, data.save[0].rotZ);
     }
+#endif
 }
+#if MSC
 #pragma warning disable CS1591
 [Obsolete("Consider switching to serializing custom class.", true)]
 public class SaveData
@@ -516,4 +518,5 @@ public class SaveDataList
     public float rotX, rotY, rotZ;
 }
 #pragma warning restore CS1591
+#endif
 #endif

@@ -6,7 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("MSCLoader")]
+#if MSC
 [assembly: AssemblyDescription("My Summer Car Mod Loader")]
+#elif MWC
+[assembly: AssemblyDescription("My Winter Car Mod Loader")]
+#endif
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kosmo Software")]
 [assembly: AssemblyProduct("MSCLoader")]
@@ -33,5 +37,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3.5.370")]
-[assembly: AssemblyFileVersion("1.3.5.370")]
+[assembly: AssemblyVersion("1.3.6.375")]
+[assembly: AssemblyFileVersion("1.3.6.375")]

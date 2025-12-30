@@ -65,6 +65,8 @@ public partial class Mod
         ModSettings
     }
 
+    internal Game supportedGames = Game.MySummerCar;
+
     /// <summary>
     /// true if mod is disabled
     /// </summary>
@@ -208,5 +210,10 @@ public partial class Mod
                 break;
         }
     }
+    /// <summary>
+    /// Set supported games (MSC or MWC or both)
+    /// </summary>
+    /// <param name="game">Bitwise enum</param>
+   // public void SetupSupportedGames(Game game) => supportedGames = game;
 }
 #endif
