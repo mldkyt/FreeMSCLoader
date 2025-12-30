@@ -29,11 +29,12 @@ internal static class Dbg
         _tw.Flush();
     }
 
-    public static void MissingFilesError()
-    {
-        MessageBox.Show($"Couldn't find any required core files.{Environment.NewLine}Please unpack all files before launching this installer!", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        Log("!!! CRASH !!!", true, true);
-        Log("Core files not found, exiting.");
-        Environment.Exit(0);
+        public static void MissingFilesError()
+        {
+            MessageBox.Show($"Couldn't find any required core files.{Environment.NewLine}Please unpack all files before launching this installer!", "Fatal Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Log($"!!! ERROR !!!", true, true);
+            Log($"Core files not found, exiting.");
+            Environment.Exit(0);
+        }
     }
 }

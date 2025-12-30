@@ -52,17 +52,17 @@ public partial class MainWindow
             Dbg.MissingFilesError();
         }
 
-        SelectGameFolderPage(Game.Msc);
-        StatusBarText.Text = $"MSCLInstaller (ver. {msclInstallerVer.Major}.{msclInstallerVer.Minor}.{msclInstallerVer.Build})";
-    }
-    internal void SetFreeMscLoaderVer(string ver)
-    {
-        StatusBarText.Text = $"MSCLInstaller (ver. {msclInstallerVer.Major}.{msclInstallerVer.Minor}.{msclInstallerVer.Build}) | FreeMSCLoader (ver. {ver})";
-    }
-    internal void ReInitInstallerPage()
-    {
-        mscloaderInstaller = new FreeMscLoaderInstaller();
-    }
+            SelectGameFolderPage(Game.MSC);
+            StatusBarText.Text = $"MSCLInstaller (ver. {MSCLInstallerVer.Major}.{MSCLInstallerVer.Minor}.{MSCLInstallerVer.Build})";
+        }
+        internal void SetMSCLoaderVer(string ver)
+        {
+            StatusBarText.Text = $"MSCLInstaller (ver. {MSCLInstallerVer.Major}.{MSCLInstallerVer.Minor}.{MSCLInstallerVer.Build}) | MSCLoader (ver. {ver})";
+        }
+        internal void ReInitInstallerPage()
+        {
+            mscloaderInstaller = new MSCLoaderInstaller();
+        }
 
     internal InstallProgress InstallProgressPage()
     {

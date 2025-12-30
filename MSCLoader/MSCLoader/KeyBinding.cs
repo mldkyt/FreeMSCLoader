@@ -62,7 +62,7 @@ internal class KeyBinding : MonoBehaviour
         keyb = kb;
         KeybindName.text = kb.Name;
         KeybindText.text = kb.KeybModif == KeyCode.None ? FriendlyBindName(kb.KeybKey.ToString()).ToUpper() : $"{FriendlyBindName(kb.KeybModif.ToString()).ToUpper()} + {FriendlyBindName(kb.KeybKey.ToString()).ToUpper()}";
-            
+
     }
     private string FriendlyBindName(string name)
     {
@@ -86,7 +86,7 @@ internal class KeyBinding : MonoBehaviour
                     return "Num .";
             }
             return name.Replace("Keypad", "Num ");
-        }        
+        }
         return name;
     }
     private void Update()
@@ -136,7 +136,8 @@ internal class KeyBinding : MonoBehaviour
     {
         if (modifier)
         {
-            if (keyb.KeybKey == kcode && kcode != KeyCode.None)          {
+            if (keyb.KeybKey == kcode && kcode != KeyCode.None)
+            {
                 KeybindError(true);
                 return;
             }

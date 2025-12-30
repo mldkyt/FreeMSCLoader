@@ -39,42 +39,42 @@
     <DocumentationFile>bin\Release\MSCLoader.xml</DocumentationFile>
     <Optimize>true</Optimize>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <LangVersion>10</LangVersion>
+    <LangVersion>13</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="cInput">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\cInput.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\cInput.dll</HintPath>
     </Reference>
     <Reference Include="ES2">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\ES2.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\ES2.dll</HintPath>
     </Reference>
     <Reference Include="INIFileParser">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\INIFileParser.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\INIFileParser.dll</HintPath>
     </Reference>
     <Reference Include="Ionic.Zip">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Ionic.Zip.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\Ionic.Zip.dll</HintPath>
     </Reference>
     <Reference Include="NAudio">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\NAudio.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="NAudio.Flac">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\NAudio.Flac.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\NAudio.Flac.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\NVorbis.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\NVorbis.dll</HintPath>
     </Reference>
     <Reference Include="PlayMaker">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\PlayMaker.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\PlayMaker.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>..\..\..\..\..\Steam\steamapps\common\My Summer Car\mysummercar_Data\Managed\System.dll</HintPath>
@@ -89,10 +89,10 @@
       <HintPath>..\..\..\..\..\Steam\steamapps\common\My Summer Car\mysummercar_Data\Managed\System.Xml.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>Z:\MSC\mysummercar_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

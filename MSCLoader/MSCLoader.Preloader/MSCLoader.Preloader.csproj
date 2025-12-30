@@ -42,32 +42,32 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="0Harmony">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\0Harmony.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Assembly-CSharp.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp-firstpass">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
         </Reference>
         <Reference Include="INIFileParser">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\INIFileParser.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\INIFileParser.dll</HintPath>
         </Reference>
         <Reference Include="Ionic.Zip">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\Ionic.Zip.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\Ionic.Zip.dll</HintPath>
         </Reference>
         <Reference Include="PlayMaker">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\PlayMaker.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\PlayMaker.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
         <Reference Include="System.Runtime.Serialization"/>
         <Reference Include="UnityEngine">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\UnityEngine.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\UnityEngine.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UI">
-            <HintPath>A:\SteamLibrary\steamapps\common\My Summer Car\mysummercar_Data\Managed\UnityEngine.UI.dll</HintPath>
+            <HintPath>Z:\MSC\mysummercar_Data\Managed\UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
