@@ -11,10 +11,10 @@ namespace MSCLInstaller;
 public partial class MainWindow
 {
     private SelectGameFolder selectGameFolder;
-    private FreeMscLoaderInstaller mscloaderInstaller;
+    private MSCLoaderInstaller mscloaderInstaller;
     private SelectModsFolder selectModsFolder;
     private InstallProgress installProgress;
-    private Version msclInstallerVer;
+    private Version MSCLInstallerVer;
     public MainWindow()
     {
         InitializeComponent();
@@ -32,7 +32,7 @@ public partial class MainWindow
     }
     private void Initialize()
     {
-        msclInstallerVer = Assembly.GetExecutingAssembly().GetName().Version;
+        MSCLInstallerVer = Assembly.GetExecutingAssembly().GetName().Version;
         Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
         Storage.currentPath = Path.GetFullPath(".");
         if (File.Exists("Log.txt")) File.Delete("Log.txt");
@@ -40,7 +40,7 @@ public partial class MainWindow
         Dbg.Init();
         Dbg.Log($"Current folder: {Storage.currentPath}");
         selectGameFolder = new SelectGameFolder();
-        mscloaderInstaller = new FreeMscLoaderInstaller();
+        mscloaderInstaller = new MSCLoaderInstaller();
         selectModsFolder = new SelectModsFolder();
         Storage.packFiles = Directory.GetFiles(Storage.currentPath, "*.pack");
         if (Storage.packFiles.Length == 0)
@@ -71,7 +71,7 @@ public partial class MainWindow
         return installProgress;
     }
 
-    private void SelectGameFolderPage(Game game)
+    public void SelectGameFolderPage(Game game)
     {
         Dbg.Log("Select Game Folder", true, true);
         MsciPageTitle.Text = "Select Game Folder";
@@ -80,7 +80,7 @@ public partial class MainWindow
         selectGameFolder.Init(this);
     }
 
-    public void FreeMscLoaderInstallerPage()
+    public void MSCLoaderInstallerPage()
     {
         Dbg.Log("FreeMSCLoader Installer", true, true);
         MainFrame.Content = mscloaderInstaller;

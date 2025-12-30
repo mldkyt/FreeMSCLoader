@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace MSCLInstaller;
 
-public static class Md5FileHashes
+public static class MD5FileHashes
 {
     /*
      * mono.dll MD5 hashes (for enabling debug mode):
@@ -14,8 +14,8 @@ public static class Md5FileHashes
      * 3EE5C3BD42B61AE820A028AF35DF99C0 (64-bit, debug)
      *
      */
-    public const string Mono64Normal = "F190C7ECFE414FB407137C1D95AC310E";
-    public const string Mono64debug = "3EE5C3BD42B61AE820A028AF35DF99C0";
+    public const string mono64normal = "F190C7ECFE414FB407137C1D95AC310E";
+    public const string mono64debug = "3EE5C3BD42B61AE820A028AF35DF99C0";
 
     /*
      * Game Executable
@@ -25,11 +25,11 @@ public static class Md5FileHashes
      * 3C3F1460A074993E7F483F08318A2015 (64-bit, msc vanilla dx9)
      *
      */
-    public const string Msc32 = "E9F1D7E11359DA995881B9280E1726B3";
-    public const string Msc64 = "7C37795F08588D952C4B3289DE7AB2EA";
-    public const string Msc64d9 = "3C3F1460A074993E7F483F08318A2015";
+    public const string msc32 = "E9F1D7E11359DA995881B9280E1726B3";
+    public const string msc64 = "7C37795F08588D952C4B3289DE7AB2EA";
+    public const string msc64d9 = "3C3F1460A074993E7F483F08318A2015";
 
-    public static string Md5HashFile(string fn)
+    public static string MD5HashFile(string fn)
     {
         var hash = MD5.Create().ComputeHash(File.ReadAllBytes(fn));
         return BitConverter.ToString(hash).Replace("-", "");
@@ -38,10 +38,10 @@ public static class Md5FileHashes
 
 public enum Game
 {
-    Msc,
+    MSC,
     //For future use
     MscIma,
-    Mwc
+    MWC
 }
 
 public static class InstallerHelpers

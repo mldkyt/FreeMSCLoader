@@ -92,7 +92,7 @@ public partial class SelectModsFolder
             if (selectedFolder == currentFolder)
             {
                 Dbg.Log("Selected folder is same as current, no changes will be made");
-                main.FreeMscLoaderInstallerPage(); //No change, go back.
+                main.MSCLoaderInstallerPage(); //No change, go back.
                 return;
             }
 
@@ -113,7 +113,7 @@ public partial class SelectModsFolder
             return;
         }
         Storage.modsPath = newPath;
-        main.InstallProgressPage().InstallFreeMscLoader(selectedFolder);
+        main.InstallProgressPage().InstallMSCLoader(selectedFolder);
     }
     private void ChangeModsFolderStart(bool copyOldMods, string oldPath, string newPath, ModsFolder newFolder)
     {

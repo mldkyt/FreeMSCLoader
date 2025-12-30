@@ -6,8 +6,6 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using Ionic.Zip;
 
-namespace MSCLInstaller;
-
 namespace MSCLInstaller
 {
     /// <summary>

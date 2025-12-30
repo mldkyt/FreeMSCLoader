@@ -22,9 +22,9 @@ public partial class SelectGameFolder
         main = m;
         main.Title += Storage.selectedGame switch
         {
-            Game.Msc => " - My Summer Car",
+            Game.MSC => " - My Summer Car",
             Game.MscIma => " - My Summer Car (Community)",
-            Game.Mwc => " - My Winter Car",
+            Game.MWC => " - My Winter Car",
             _ => throw new ArgumentOutOfRangeException()
         };
         FindMSCOnSteam();
@@ -123,14 +123,14 @@ public partial class SelectGameFolder
         var game = Path.Combine(Storage.mscPath, "mysummercar.exe");
         if (!File.Exists(game)) return;
         DetectedGameText.Text = string.Empty;
-        switch (Md5FileHashes.Md5HashFile(game))
+        switch (MD5FileHashes.MD5HashFile(game))
         {
-            case Md5FileHashes.Msc64:
-            case Md5FileHashes.Msc64d9:
+            case MD5FileHashes.msc64:
+            case MD5FileHashes.msc64d9:
                 DetectedGameText.Inlines.Add(new Run("Detected: ") { FontWeight = FontWeights.Bold });
                 DetectedGameText.Inlines.Add(new Bold(new Run("My Summer Car (64-bit)") { Foreground = Brushes.LightGreen }));
                 break;
-            case Md5FileHashes.Msc32:
+            case MD5FileHashes.msc32:
                 Storage.is64 = false;
                 DetectedGameText.Inlines.Add(new Run("Detected: ") { FontWeight = FontWeights.Bold });
                 DetectedGameText.Inlines.Add(new Bold(new Run("My Summer Car (32-bit)") { Foreground = Brushes.LightGreen }));
@@ -167,6 +167,6 @@ public partial class SelectGameFolder
 
     private void GoNext_Click(object sender, RoutedEventArgs e)
     {
-        main.FreeMscLoaderInstallerPage();
+        main.MSCLoaderInstallerPage();
     }
 }

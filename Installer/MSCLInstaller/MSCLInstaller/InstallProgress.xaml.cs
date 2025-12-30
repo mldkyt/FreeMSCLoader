@@ -29,9 +29,9 @@ namespace MSCLInstaller
             };
             progress.ProgressChanged += (_, e) =>
             {
-                progressBar.IsIndeterminate = e.isIndeterminate;
-                progressBar.Maximum = e.max;
-                progressBar.Value = e.percent;
+                ProgressBar.IsIndeterminate = e.isIndeterminate;
+                ProgressBar.Maximum = e.max;
+                ProgressBar.Value = e.percent;
             };
             main = m;
         }
@@ -53,7 +53,7 @@ namespace MSCLInstaller
             bool failed = await Task.Run(() => ChangeModsFolderWork(newFolder, true, progressLog, progress));
             if (failed) return;
             AddLog($"Copying mods from {oldPath} to {Storage.modsPath}...");
-            progressBar.Maximum = 100;
+            ProgressBar.Maximum = 100;
             bool failed2 = await Task.Run(() => ChangeModsFolderAndCopyWork(oldPath, progressLog, progress));
             if (failed2) return;
             if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
