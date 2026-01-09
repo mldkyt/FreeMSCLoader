@@ -10,12 +10,16 @@ internal class ConsoleController
 {
     // Used to communicate with ConsoleView
     internal delegate void LogChangedHandler(string[] log);
-
     internal event LogChangedHandler logChanged;
 
     // Object to hold information about each command
     internal class CommandRegistration
     {
+        public string command { get; private set; }
+        public CommandHandler handler { get; private set; }
+        public string help { get; private set; }
+        public bool showInHelp { get; private set; }
+
         public CommandRegistration(string command, CommandHandler handler, string help, bool showInHelp)
         {
             this.command = command;
@@ -23,11 +27,6 @@ internal class ConsoleController
             this.help = help;
             this.showInHelp = showInHelp;
         }
-
-        public string command { get; }
-        public CommandHandler handler { get; }
-        public string help { get; }
-        public bool showInHelp { get; }
     }
 
     // How many log lines should be retained?
@@ -35,11 +34,11 @@ internal class ConsoleController
 #if DevMode
         const int scrollbackSize = 500;
 #else
-    private const int scrollbackSize = 200;
+    const int scrollbackSize = 200;
 #endif
     public Queue<string> scrollback;
-    public List<string> commandHistory = new();
-    internal Dictionary<string, CommandRegistration> commands = new();
+    public List<string> commandHistory = new List<string>();
+    internal Dictionary<string, CommandRegistration> commands = new Dictionary<string, CommandRegistration>();
 
     public string[] log { get; private set; } //Copy of scrollback as an array for easier use by ConsoleView
     internal bool pauseDequeue = false;
@@ -47,9 +46,13 @@ internal class ConsoleController
     public ConsoleController()
     {
         if (ModLoader.devMode && MSCUnloader.dm_pcon != null)
+        {
             scrollback = new Queue<string>(MSCUnloader.dm_pcon);
+        }
         else
+        {
             scrollback = new Queue<string>(scrollbackSize);
+        }
         RegisterCommand("help", HelpCommand, "This screen", "?");
         RegisterCommand("clear", ClearConsole, "Clears the console screen", "cls");
     }
@@ -58,15 +61,13 @@ internal class ConsoleController
     {
         commands.Add(command, new CommandRegistration(command, handler, help, inHelp));
     }
-
     public void RegisterCommand(string command, CommandHandler handler, string help, string alias, bool inHelp = true)
     {
-        var cmd = new CommandRegistration(command, handler, help, inHelp);
+        CommandRegistration cmd = new CommandRegistration(command, handler, help, inHelp);
         commands.Add(command, cmd);
         commands.Add(alias, cmd);
     }
-
-    private void ClearConsole(string[] args)
+    void ClearConsole(string[] args)
     {
         scrollback.Clear();
         log = scrollback.ToArray();
@@ -95,80 +96,85 @@ internal class ConsoleController
         {
             AppendLogLine(string.Format("{1}<b><color=orange>></color></b> {0}", commandString, Environment.NewLine));
 
-            var commandSplit = ParseArguments(commandString);
-            var args = new string[0];
+            string[] commandSplit = ParseArguments(commandString);
+            string[] args = new string[0];
             if (commandSplit.Length < 1)
             {
                 AppendLogLine(string.Format("<color=red>Unable to process command:</color> <b>{0}</b>", commandString));
                 return;
-            }
 
-            if (commandSplit.Length >= 2)
+            }
+            else if (commandSplit.Length >= 2)
             {
-                var numArgs = commandSplit.Length - 1;
+                int numArgs = commandSplit.Length - 1;
                 args = new string[numArgs];
                 Array.Copy(commandSplit, 1, args, 0, numArgs);
             }
-
             RunCommand(commandSplit[0].ToLower(), args);
             commandHistory.Add(commandString);
         }
     }
 
-    private void RunCommand(string command, string[] args)
+    void RunCommand(string command, string[] args)
     {
         if (!string.IsNullOrEmpty(command))
         {
-            if (!commands.TryGetValue(command, out var reg))
+            if (!commands.TryGetValue(command, out CommandRegistration reg))
             {
-                AppendLogLine(string.Format(
-                    "Unknown command <b><color=red>{0}</color></b> please, type <color=lime><b>help</b></color> for list of all commands.",
-                    command));
+                AppendLogLine(string.Format("Unknown command <b><color=red>{0}</color></b> please, type <color=lime><b>help</b></color> for list of all commands.", command));
             }
             else
             {
                 if (reg.handler == null)
-                    AppendLogLine(string.Format(
-                        "<color=red>Unable to process command:</color> <b>{0}</b>, <color=red>handler was null.</color>",
-                        command));
+                {
+                    AppendLogLine(string.Format("<color=red>Unable to process command:</color> <b>{0}</b>, <color=red>handler was null.</color>", command));
+                }
                 else
+                {
                     reg.handler(args);
+                }
             }
         }
     }
 
-    private static string[] ParseArguments(string commandString)
+    static string[] ParseArguments(string commandString)
     {
-        var parmChars = new LinkedList<char>(commandString.ToCharArray());
-        var inQuote = false;
-        var node = parmChars.First;
+        LinkedList<char> parmChars = new LinkedList<char>(commandString.ToCharArray());
+        bool inQuote = false;
+        LinkedListNode<char> node = parmChars.First;
         while (node != null)
         {
-            var next = node.Next;
+            LinkedListNode<char> next = node.Next;
             if (node.Value == '"')
             {
                 inQuote = !inQuote;
                 parmChars.Remove(node);
             }
-
-            if (!inQuote && node.Value == ' ') node.Value = '\n';
+            if (!inQuote && node.Value == ' ')
+            {
+                node.Value = '\n';
+            }
             node = next;
         }
-
-        var parmCharsArr = new char[parmChars.Count];
+        char[] parmCharsArr = new char[parmChars.Count];
         parmChars.CopyTo(parmCharsArr, 0);
-        return new string(parmCharsArr).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        return new string(parmCharsArr).Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private void HelpCommand(string[] args)
+    void HelpCommand(string[] args)
     {
         ModConsole.Print("<color=green><b>Available commands:</b></color>");
-        var cmds = commands.Values.GroupBy(x => x.command).Select(g => g.First()).Distinct().ToArray();
-        for (var i = 0; i < cmds.Length; i++)
+        CommandRegistration[] cmds = commands.Values.GroupBy(x => x.command).Select(g => g.First()).Distinct().ToArray();
+        for (int i = 0; i < cmds.Length; i++)
+        {
             if (cmds[i].showInHelp)
                 AppendLogLine(string.Format("<color=orange><b>{0}</b></color>: {1}", cmds[i].command, cmds[i].help));
-        if (ModLoader.GetCurrentScene() != CurrentScene.Game)
+        }
+        if (ModLoader.CurrentScene != CurrentScene.Game)
+        {
             AppendLogLine("<b><color=red>More commands may appear after you load a save...</color></b>");
+        }
     }
 #endif
 }
+

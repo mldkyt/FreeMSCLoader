@@ -29,9 +29,9 @@ namespace MSCLInstaller
             };
             progress.ProgressChanged += (_, e) =>
             {
-                ProgressBar.IsIndeterminate = e.isIndeterminate;
-                ProgressBar.Maximum = e.max;
-                ProgressBar.Value = e.percent;
+                progressBar.IsIndeterminate = e.isIndeterminate;
+                progressBar.Maximum = e.max;
+                progressBar.Value = e.percent;
             };
             main = m;
         }
@@ -53,7 +53,7 @@ namespace MSCLInstaller
             bool failed = await Task.Run(() => ChangeModsFolderWork(newFolder, true, progressLog, progress));
             if (failed) return;
             AddLog($"Copying mods from {oldPath} to {Storage.modsPath}...");
-            ProgressBar.Maximum = 100;
+            progressBar.Maximum = 100;
             bool failed2 = await Task.Run(() => ChangeModsFolderAndCopyWork(oldPath, progressLog, progress));
             if (failed2) return;
             if (MessageBox.Show("Folder has been changed", "Change Mods Folder", MessageBoxButton.OK, MessageBoxImage.Information) == MessageBoxResult.OK)
@@ -140,7 +140,7 @@ namespace MSCLInstaller
                 }
             }
 
-            if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true))
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, Storage.selectedGame == Game.MSC ? "main_msc.pack" : "main_mwc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true))
             {
                 MessageBox.Show("Failed to update files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
@@ -231,7 +231,7 @@ namespace MSCLInstaller
                     {
                         ZipEntry zz = zip[i];
                         progressLog.Report(($"Deleting {zz.FileName}", $"Deleting.....{zz.FileName}"));
-                        DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", zz.FileName));
+                        DeleteIfExists(Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed", zz.FileName));
                         progress.Report((i, max, false));
 
                     }
@@ -244,18 +244,18 @@ namespace MSCLInstaller
                 return true;
             }
 
-            DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.dll"));
-            DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.dll.mdb"));
-            DeleteIfExists(Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed", "MSCLoader.pdb"));
+            DeleteIfExists(Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed", "MSCLoader.dll"));
+            DeleteIfExists(Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed", "MSCLoader.dll.mdb"));
+            DeleteIfExists(Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed", "MSCLoader.pdb"));
             progressLog.Report(($"Deleting MSCLoader.dll", $"Deleting.....MSCLoader.dll"));
             progress.Report((max - 2, max, false));
 
-            DeleteIfExists(Path.Combine(Storage.mscPath, "winhttp.dll"));
+            DeleteIfExists(Path.Combine(Storage.gamePath, "winhttp.dll"));
 
             progressLog.Report(($"Deleting winhttp.dll", $"Deleting.....winhttp.dll"));
             progress.Report((max - 1, max, false));
 
-            DeleteIfExists(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
+            DeleteIfExists(Path.Combine(Storage.gamePath, "doorstop_config.ini"));
             progressLog.Report(($"Deleting doorstop_config.ini", $"Deleting.....doorstop_config.ini"));
             progress.Report((max, max, false));
 
@@ -270,12 +270,12 @@ namespace MSCLInstaller
 
             if (Storage.is64)
             {
-                if (!ExtractFiles(Path.Combine(Storage.currentPath, "core64.pack"), Storage.mscPath, progressLog, progress, false)) 
+                if (!ExtractFiles(Path.Combine(Storage.currentPath, "core64.pack"), Storage.gamePath, progressLog, progress, false)) 
                     failed = true;
             }
             else
             {
-                if (!ExtractFiles(Path.Combine(Storage.currentPath, "core32.pack"), Storage.mscPath, progressLog, progress, false)) 
+                if (!ExtractFiles(Path.Combine(Storage.currentPath, "core32.pack"), Storage.gamePath, progressLog, progress, false)) 
                     failed = true;
             }
             if (failed)
@@ -287,7 +287,7 @@ namespace MSCLInstaller
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing References (2 / 4)", $"Installing References"));
 
-            if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false))
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed"), progressLog, progress, false))
             {
                 MessageBox.Show("Failed to install files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
                 progressLog.Report(("Something went wrong", "Some steps failed to complete. Please try again by running installer as Administrator"));
@@ -296,9 +296,9 @@ namespace MSCLInstaller
             progress.Report((0, 10, true));
             progressLog.Report(($"Installing MSCLoader (3 / 4)", $"Installing MSCLoader"));
 
-            if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, Storage.selectedGame == Game.MSC ? "main_msc.pack" : "main_mwc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
 
-            if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false)) failed = true;
+            if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed"), progressLog, progress, false)) failed = true;
             if (failed)
             {
                 MessageBox.Show("Failed to install files, check Log for more info.", "Fatal Error.", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -341,12 +341,12 @@ namespace MSCLInstaller
             {
                 if (Storage.is64)
                 {
-                    if (!ExtractFiles(Path.Combine(Storage.currentPath, "core64.pack"), Storage.mscPath, progressLog, progress, false)) 
+                    if (!ExtractFiles(Path.Combine(Storage.currentPath, "core64.pack"), Storage.gamePath, progressLog, progress, false)) 
                         failed = true;
                 }
                 else
                 {
-                    if (!ExtractFiles(Path.Combine(Storage.currentPath, "core32.pack"), Storage.mscPath, progressLog, progress, false)) 
+                    if (!ExtractFiles(Path.Combine(Storage.currentPath, "core32.pack"), Storage.gamePath, progressLog, progress, false)) 
                         failed = true;
                 }
                 progressLog.Report(($"Updating config file", $"Updating config file"));
@@ -362,7 +362,7 @@ namespace MSCLInstaller
 
             if (updateRefs)
             {
-                if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false))
+                if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_ref.pack"), Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed"), progressLog, progress, false))
                     failed = true;
             }
             if (failed)
@@ -374,10 +374,9 @@ namespace MSCLInstaller
 
             if (updateMSCL)
             {
-                if (!ExtractFiles(Path.Combine(Storage.currentPath, "main_msc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
+                if (!ExtractFiles(Path.Combine(Storage.currentPath, Storage.selectedGame == Game.MSC ? "main_msc.pack" : "main_mwc.pack"), Path.Combine(Storage.currentPath, "temp"), progressLog, progress, true)) failed = true;
 
-                if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.mscPath, "mysummercar_Data", "Managed"), progressLog, progress, false)) failed = true;
-
+                if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Managed.zip"), Path.Combine(Storage.gamePath, Storage.selectedGame == Game.MSC ? "mysummercar_Data" : "mywintercar_Data", "Managed"), progressLog, progress, false)) failed = true;
                 if (!ExtractFiles(Path.Combine(Storage.currentPath, "temp", "Mods.zip"), Storage.modsPath, progressLog, progress, false)) failed = true;
                 progress.Report((0, 10, true));
                 progressLog.Report(($"Cleaning temp files", $"Cleaning temp files"));
@@ -492,19 +491,23 @@ namespace MSCLInstaller
                     break;
             }
 
-            if (File.Exists(Path.Combine(Storage.mscPath, "doorstop_config.ini")))
+            if (File.Exists(Path.Combine(Storage.gamePath, "doorstop_config.ini")))
             {
                 try
                 {
                     progressLog.Report(("Reading: doorstop_config.ini", "Reading.....doorstop_config.ini"));
-                    IniData ini = new FileIniDataParser().ReadFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"));
-
+                    IniData ini = new FileIniDataParser().ReadFile(Path.Combine(Storage.gamePath, "doorstop_config.ini"));
                     ini["MSCLoader"]["mods"] = newCfg;
                     ini["MSCLoader"]["skipIntro"] = Storage.skipIntroCfg.ToString().ToLower();
                     ini["MSCLoader"]["skipConfigScreen"] = Storage.skipConfigScreenCfg.ToString().ToLower();
-                    progressLog.Report(("Writing: doorstop_config.ini", "Writing.....doorstop_config.ini"));
-                    new FileIniDataParser().WriteFile(Path.Combine(Storage.mscPath, "doorstop_config.ini"), ini, System.Text.Encoding.ASCII);
+                    if(Storage.selectedGame == Game.MSC)
+                        ini["General"]["target_assembly"] = @"mysummercar_Data\Managed\MSCLoader.Preloader.dll";
+					else
+					    ini["General"]["target_assembly"] = @"mywintercar_Data\Managed\MSCLoader.Preloader.dll";
 
+
+					progressLog.Report(("Writing: doorstop_config.ini", "Writing.....doorstop_config.ini"));
+                    new FileIniDataParser().WriteFile(Path.Combine(Storage.gamePath, "doorstop_config.ini"), ini, System.Text.Encoding.ASCII);
                 }
                 catch (Exception e)
                 {

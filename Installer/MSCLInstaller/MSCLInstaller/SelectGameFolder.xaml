@@ -17,7 +17,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <TextBox Name="MscFolder" IsReadOnly="True"/>
+                    <TextBox Name="MSCFolder" IsReadOnly="True"/>
                     <Button Grid.Column="1" Content="Change..." HorizontalAlignment="Left" Margin="5,0,0,0" Click="MSCFBrowse_Click"/>
                 </Grid>
             </StackPanel>

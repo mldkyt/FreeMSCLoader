@@ -42,7 +42,11 @@ public enum Game
     /// Designed for My Winter Car
     /// </summary>
     MyWinterCar = 2,
-    //MySummerCarCommunity = 4
+
+    /// <summary>
+    /// Designed for both My Summer Car and My Winter Car
+    /// </summary>
+    MySummerCar_And_MyWinterCar = MySummerCar | MyWinterCar
 }
 
 public partial class ModLoader
@@ -50,7 +54,13 @@ public partial class ModLoader
     /// <summary>
     /// Current scene
     /// </summary>
-    public static CurrentScene CurrentScene { get; internal set; }
+    public static CurrentScene CurrentScene => currentScene;
+
+    /// <summary>
+    /// Get Current Game
+    /// </summary>
+    /// <returns>Game enum</returns>
+    public static Game CurrentGame => currentGame;
 
     /// <summary>
     /// Check if steam is present
@@ -86,21 +96,16 @@ public partial class ModLoader
         return false;
     }
 
+#if MSC
     /// <summary>
     /// Get Current Game Scene
     /// </summary>
     /// <returns>CurrentScene enum</returns>
+    [Obsolete("Use CurrentScene instead", true)]
     public static CurrentScene GetCurrentScene() => CurrentScene;
 
-    /// <summary>
-    /// Get Current Game
-    /// </summary>
-    /// <returns>Game enum</returns>
-
-    public static Game GetCurrentGame() => CurrentGame;
-    
     //TODO: MAY NOT BE USED ANYMORE plz check and remove if not needed
-    #if MSC
+
     /// <summary>
     /// Get Mod class of modID
     /// </summary>
@@ -173,7 +178,7 @@ public partial class ModLoader
     /// <param name="includeDisabled">Include disabled mods</param>
     /// <returns>true if mod ID is present</returns>
     public static bool IsModPresent(string ModID, bool includeDisabled) => includeDisabled ? LoadedMods.Any(x => x.ID.Equals(ModID)) : IsModPresent(ModID);
-    #if MSC
+#if MSC
     /// <summary>
     /// [compatibility only]
     /// </summary>
@@ -183,14 +188,14 @@ public partial class ModLoader
     [Obsolete("This overload is compatibility only", true)]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static string GetModSettingsFolder(Mod mod, bool create = true) => GetModSettingsFolder(mod);
-    #endif
+#endif
     /// <summary>
     /// Mod settings folder, use this if you want save something. 
     /// </summary>
     /// <returns>Path to your mod settings folder</returns>
     /// <param name="mod">Your mod Class.</param>
     public static string GetModSettingsFolder(Mod mod) => Path.Combine(SettingsFolder, mod.ID);
-    #if MSC
+#if MSC
     /// <summary>
     /// [Obsolete] Change to GetModSettingsFolder()
     /// </summary>
@@ -212,7 +217,7 @@ public partial class ModLoader
         if (!Directory.Exists(Path.Combine(AssetsFolder, mod.ID))) Directory.CreateDirectory(Path.Combine(AssetsFolder, mod.ID));
         return Path.Combine(AssetsFolder, mod.ID);
     }
-    #if MSC
+#if MSC
     /// <summary>
     /// [compatibility only]
     /// </summary>
@@ -222,6 +227,6 @@ public partial class ModLoader
     [Obsolete("This overload is compatibility only", true)]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static string GetModAssetsFolder(Mod mod, bool create = true) => GetModAssetsFolder(mod);
-    #endif
+#endif
 }
 #endif

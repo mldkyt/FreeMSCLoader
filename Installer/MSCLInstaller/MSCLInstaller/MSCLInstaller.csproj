@@ -162,7 +162,7 @@
     <Resource Include="mscpatchericon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\logo.png" />
+    <Resource Include="Images\logo_msc.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\logo_sel.png" />
@@ -171,6 +171,13 @@
     <PackageReference Include="System.ValueTuple">
       <Version>4.6.1</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\msc.png" />
+    <Resource Include="Images\mwc.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\logo_mwc.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

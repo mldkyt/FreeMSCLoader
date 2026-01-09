@@ -23,7 +23,10 @@ internal class ModMenu : Mod
     internal static SettingsTextBox playerName;
     internal static SettingsCheckBox dm_logST, dm_operr, dm_warn, dm_pcon;
     internal static SettingsCheckBox expWarning, modPath, forceMenuVsync, openLinksOverlay, skipGameIntro, skipConfigScreen, filterAdPopups;
-
+#if MWC    
+    internal static SettingsCheckBox ignoreCompatibility;
+#endif  
+    
     private System.Diagnostics.FileVersionInfo coreVer, doorstopVer;
 
     public override void ModSetup()
@@ -55,8 +58,11 @@ internal class ModMenu : Mod
         Settings.AddText("Skip stuff");
         skipGameIntro = Settings.AddCheckBox("MSCLoader_skipGameIntro", "Skip game splash screen", false, SkipIntroSet);
         skipConfigScreen = Settings.AddCheckBox("MSCLoader_skipConfigScreen", "Skip configuration screen", false, SkipConfigScreen);
-
-        Settings.AddHeader("FreeLoader specific settings");
+#if MWC
+        Settings.AddText("Compatibility stuff");
+        ignoreCompatibility = Settings.AddCheckBox("MSCLoader_ignoreCompatibility", "Ignore compatibility warnings (for MSC mods)", false, IgnoreCompatibilityWarning);
+#endif
+        Settings.AddHeader("FreeMSCLoader specific settings");
         playerName = Settings.AddTextBox("FreeLoader_name", "Name in console", "Freedom", "Freedom");
         
         Settings.AddHeader("MSCLoader Credits", Color.black);
@@ -66,7 +72,7 @@ internal class ModMenu : Mod
         Settings.AddText("<color=aqua>BrennFuchS</color> - Default mod icon.");
 
         Settings.AddHeader("Detailed Version Information", new Color32(0, 128, 0, 255));
-        coreVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "MSCLoader.Preloader.dll"));
+        coreVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "MSCLoader.Preloader.dll"));
         doorstopVer = System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine("", "winhttp.dll"));
         SettingsText modulesVer = Settings.AddText($"MSCLoader modules:{Environment.NewLine}<color=yellow>Doorstop</color>: <color=aqua>v{doorstopVer.ProductVersion}</color>{Environment.NewLine}<color=yellow>MSCLoader.Preloader</color>: <color=aqua>v{coreVer.FileMajorPart}.{coreVer.FileMinorPart}.{coreVer.FileBuildPart} build {coreVer.FilePrivatePart}</color>{Environment.NewLine}<color=yellow>MSCLoader</color>: <color=aqua>v{ModLoader.MSCLoader_Ver} build {ModLoader.Instance.currentBuild}</color>");
         if (File.Exists(Path.Combine(ModLoader.ModsFolder, Path.Combine("References", "MSCCoreLibrary.dll"))))
@@ -76,13 +82,13 @@ internal class ModMenu : Mod
         }
         try
         {
-            Settings.AddText($"Build-in libraries:{Environment.NewLine}<color=yellow>Harmony</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "0Harmony.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>Ionic.Zip</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Ionic.Zip.Reduced.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>NAudio</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>NAudio (Vorbis)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NVorbis.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>NAudio (Flac)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "NAudio.Flac.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>Newtonsoft.Json</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "Newtonsoft.Json.dll")).FileVersion}</color>{Environment.NewLine}" +
-                $"<color=yellow>INIFileParser</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(Path.Combine("mysummercar_Data", "Managed"), "INIFileParser.dll")).FileVersion}</color>");
+            Settings.AddText($"Build-in libraries:{Environment.NewLine}<color=yellow>Harmony</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "0Harmony.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>Ionic.Zip</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "Ionic.Zip.Reduced.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "NAudio.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio (Vorbis)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "NVorbis.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>NAudio (Flac)</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "NAudio.Flac.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>Newtonsoft.Json</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "Newtonsoft.Json.dll")).FileVersion}</color>{Environment.NewLine}" +
+                $"<color=yellow>INIFileParser</color>: <color=aqua>v{System.Diagnostics.FileVersionInfo.GetVersionInfo(Path.Combine(ModLoader.ManagedPath, "INIFileParser.dll")).FileVersion}</color>");
         }
         catch (Exception e) { Console.WriteLine(e); }
     }
@@ -133,9 +139,18 @@ internal class ModMenu : Mod
         ini["MSCLoader"]["skipConfigScreen"] = skipConfigScreen.GetValue().ToString().ToLower();
         parser.WriteFile("doorstop_config.ini", ini, System.Text.Encoding.ASCII);
     }
+#if MWC
+    private void IgnoreCompatibilityWarning()
+    {
+        if (ignoreCompatibility.GetValue())
+        {
+            ModUI.ShowMessage($"Reminder!{Environment.NewLine}{Environment.NewLine}<color=orange>Ignore Compatibility Warning</color> doesn't magically make MSC mods work on MWC, it just disables the compatibility check. But the mod will still have very low chance of working correctly. Before disabling, check if the mod you want to run wasn't already ported to MWC. <color=aqua>MSC mod not working on MWC is NOT a bug.</color>{Environment.NewLine}{Environment.NewLine}You need to restart game for this setting to take effect.", "Compatibility Warning");
+        }
+    }
+#endif
     private static void VSyncSwitchCheckbox()
     {
-        if (ModLoader.GetCurrentScene() == CurrentScene.MainMenu)
+        if (ModLoader.CurrentScene == CurrentScene.MainMenu)
         {
             if (forceMenuVsync.GetValue())
                 QualitySettings.vSyncCount = 1;
@@ -161,7 +176,7 @@ internal class ModMenu : Mod
         AssetBundle ab = LoadAssets.LoadBundle(this, "settingsui.unity3d");
         GameObject UIp = ab.LoadAsset<GameObject>("MSCLoader Canvas menu.prefab");
         TextAsset assetver = ab.LoadAsset<TextAsset>("version.txt");
-        if (assetver == null || !MSCLInfo.BuildType.StartsWith(assetver.text.Split('|')[0]) || !MSCLInfo.menuAssetVersion.Equals(assetver.text.Split('|')[1])) 
+        if (assetver == null || !MSCLInfo.BuildType.StartsWith(assetver.text.Split('|')[0]) || !MSCLInfo.menuAssetVersion.Equals(assetver.text.Split('|')[1]))
         {
             throw new Exception($"Invalid MSCLoader asset file version (<color=aqua>settingsui.unity3d</color>), do not replace random MSCLoader files with other versions.{Environment.NewLine}");
         }

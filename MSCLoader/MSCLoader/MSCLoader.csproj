@@ -51,6 +51,15 @@
     <LangVersion>13</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MWC_Release|AnyCPU'">
+    <OutputPath>bin\MWC_Release\</OutputPath>
+    <DefineConstants>TRACE;MWC_Release;MWC</DefineConstants>
+    <DocumentationFile>bin\Release\MSCLoader.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>13</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>Z:\MSC\mysummercar_Data\Managed\Assembly-CSharp.dll</HintPath>
@@ -185,7 +194,10 @@
     <Compile Include="Settings.OldFormat.cs" Condition="$(DefineConstants.Contains('MSC'))" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CoreAssets\core.unity3d" Condition="!$(DefineConstants.Contains('Mini'))" />
+    <EmbeddedResource Include="CoreAssets\core_msc.unity3d" Condition="!$(DefineConstants.Contains('Mini')) and $(DefineConstants.Contains('MSC'))" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CoreAssets\core_mwc.unity3d" Condition="!$(DefineConstants.Contains('Mini')) and $(DefineConstants.Contains('MWC'))" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MSCCoreLibrary\MSCCoreLibrary\MSCCoreLibrary.csproj">

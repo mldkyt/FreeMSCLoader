@@ -81,6 +81,7 @@ internal class MSCLInternal
             for (int i = 0; i < ModLoader.Instance.MetadataUpdateList.Count; i++)
             {
                 Mod mod = ModLoader.GetModByID(ModLoader.Instance.MetadataUpdateList[i], true);
+                if (mod == null) continue;
                 if (mod.metadata == null) continue;
                 string serializedData = JsonConvert.SerializeObject(mod.metadata, config);
                 byte[] bytes = Encoding.UTF8.GetBytes(serializedData);
@@ -140,14 +141,14 @@ internal class MSCLInternal
 
     internal static bool IsEAFile(string path)
     {
-        byte[] bytes = new byte[3];
+        byte[] bytes = new byte[4];
         try
         {
             using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
             {
-                reader.Read(bytes, 0, 3);
+                reader.Read(bytes, 0, 4);
                 reader.Close();
-                return bytes[0] == 0x45 && bytes[1] == 0x41 && bytes[2] == 0x4D;
+                return bytes[0] == 0x45 && bytes[1] == 0x41 && bytes[2] == 0x4D && bytes[3] == 0x33;
             }
         }
         catch (Exception ex)
@@ -218,7 +219,7 @@ internal static class ByteArrayExtensions
 
     // --------------------------------------------------------------------------------------
 
-    public static byte[] Cry_ScrambleBitRightEnc(this byte[] cleardata, byte[] password)
+    private static byte[] Cry_ScrambleBitRightEnc(this byte[] cleardata, byte[] password)
     {
         long cdlen = cleardata.LongLength;
         byte[] cryptdata = new byte[cdlen];
@@ -246,7 +247,7 @@ internal static class ByteArrayExtensions
         }
         return cryptdata;
     }
-    public static byte[] Cry_ScrambleBitRightDec(this byte[] cryptdata, byte[] password)
+    private static byte[] Cry_ScrambleBitRightDec(this byte[] cryptdata, byte[] password)
     {
         long cdlen = cryptdata.LongLength;
         byte[] cleardata = new byte[cdlen];

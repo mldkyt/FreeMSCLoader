@@ -12,7 +12,7 @@
             <GroupBox Header="Progress">
                 <StackPanel>
                     <TextBlock Name="ProgressText" Text="Waiting..."/>
-                    <ProgressBar Name="ProgressBar" Height="15"/>
+                    <ProgressBar Name="progressBar" Height="15"/>
                 </StackPanel>
             </GroupBox>
             <GroupBox Header="Progress Log">

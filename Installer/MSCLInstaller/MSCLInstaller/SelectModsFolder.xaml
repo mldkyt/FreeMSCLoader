@@ -13,9 +13,9 @@
             <StackPanel>
                 <Border BorderBrush="#707070" BorderThickness="1" CornerRadius="5" Padding="5">
                     <StackPanel>
-                        <RadioButton Name="GameFolderRb" GroupName="ModsFolderGroup" Checked="GameFolderRB_Checked">
+                        <RadioButton Name="GameFolderRB" GroupName="ModsFolderGroup" Checked="GameFolderRB_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Name="GfCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
+                                <TextBlock Name="GFCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
                                 <TextBlock Text="Game Folder (Recommended)"/>
                             </StackPanel>
                         </RadioButton>
@@ -24,9 +24,9 @@
                 </Border>
                 <Border BorderBrush="#707070" BorderThickness="1" CornerRadius="5" Padding="5" Margin="0,5,0,5">
                     <StackPanel>
-                        <RadioButton Name="MyDocumentsRb" GroupName="ModsFolderGroup" Checked="MyDocumentsRB_Checked">
+                        <RadioButton Name="MyDocumentsRB" GroupName="ModsFolderGroup" Checked="MyDocumentsRB_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Name="MdCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
+                                <TextBlock Name="MDCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
                                 <TextBlock Text="My Documents"/>
                                 <TextBlock Name="OneDriveWarning" Text=" (OneDrive Path is not supported)" Foreground="Red" Visibility="Collapsed"/>
                             </StackPanel>
@@ -36,10 +36,10 @@
                 </Border>
                 <Border BorderBrush="#707070" BorderThickness="1" CornerRadius="5" Padding="5" Margin="0,0,0,5">
                     <StackPanel>
-                        <RadioButton Name="AppdataRb" GroupName="ModsFolderGroup" Checked="AppdataRB_Checked">
+                        <RadioButton Name="AppdataRB" GroupName="ModsFolderGroup" Checked="AppdataRB_Checked">
                             <StackPanel Orientation="Horizontal">
 
-                                <TextBlock Name="AdCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
+                                <TextBlock Name="ADCurrentText" Text="[Current] " Foreground="LimeGreen" Visibility="Collapsed"/>
                                 <TextBlock Text="AppData (MSC save folder)"/>
                             </StackPanel>
                         </RadioButton>

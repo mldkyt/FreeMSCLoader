@@ -51,7 +51,17 @@ namespace MSCLoader
                     WarningText.text = "<color=aqua>Early Access Mod</color>";
                     WarningInfo.text = $"This mod is a <color=aqua>Early Access Mod</color>. There may be bugs. {Environment.NewLine}Please respect any rules given by mod author, breaking them may result in blacklisting from ANY future Early Access mods.";
                 }
-                #if MSC
+#if MWC
+                if (mod.isIncompatible)
+                {
+                    WarningText.gameObject.SetActive(true);
+                    WarningBtn.gameObject.SetActive(true);
+                    WarningText.text = "<color=lightblue>My Summer Car Mod</color>";
+                    WarningInfo.text = $"This mod wasn't designed for My Winter Car, and may not work as intended. {Environment.NewLine}Check if there updated version (or remake) available for My Winter Car.";
+
+                }
+#endif
+#if MSC
                 if (mod.proSettings || (mod.AdditionalReferences != null && mod.AdditionalReferences.Contains("MSCLoader.Features")))
                 {
                     WarningText.gameObject.SetActive(true);
@@ -59,7 +69,7 @@ namespace MSCLoader
                     WarningText.text = "<color=lightblue>Compatibility Mode (Pro)</color>";
                     WarningInfo.text = $"This mod runs in <color=lightblue>compatibility mode</color>. Some features might not work as intended. {Environment.NewLine}Check if there is new version (or remake) available.";
                 }
-                #endif
+#endif
             }
             Author.text = $"by <color=orange><b>{mod.Author}</b></color> (<color=aqua>{mod.Version}</color>)";
             if (string.IsNullOrEmpty(mod.Description))
@@ -89,11 +99,17 @@ namespace MSCLoader
                         try
                         {
                             Texture2D t2d = new(1, 1);
-                            t2d.LoadImage(File.ReadAllBytes(Path.Combine(ModLoader.MetadataFolder, Path.Combine("Mod Icons", mod.metadata.icon))));
+                            byte[] iconBytes = File.ReadAllBytes(Path.Combine(ModLoader.MetadataFolder, Path.Combine("Mod Icons", mod.metadata.icon)));
+                            t2d.LoadImage(iconBytes);
                             icon.texture = t2d;
+                            if (iconBytes.Length < 10)
+                            {
+                                throw new Exception("Invalid icon");
+                            }
                         }
                         catch (Exception e)
                         {
+                            File.Delete(Path.Combine(ModLoader.MetadataFolder, Path.Combine("Mod Icons", mod.metadata.icon)));
                             ModConsole.Error(e.Message);
                             System.Console.WriteLine(e);
                         }

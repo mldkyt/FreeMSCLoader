@@ -46,18 +46,13 @@ public partial class ModLoader : MonoBehaviour
     private MSCLoaderCanvasLoading canvLoading;
     private bool isMonoDebugger = false;
     private string monoDebugIP = "127.0.0.1:10000"; //default if not changed in launch command
-    void Awake()
-    {
-        if (GameObject.Find("Music") != null)
-            GameObject.Find("Music").GetComponent<AudioSource>().Stop();
-    }
 
     /// <summary>
     /// Main init
     /// </summary>
     internal static void Init_NP(string cfg)
     {
-        CurrentGame = Application.productName == "My Summer Car" ? Game.MySummerCar : Game.MyWinterCar;
+        currentGame = Application.productName == "My Summer Car" ? Game.MySummerCar : Game.MyWinterCar;
         switch (cfg)
         {
             case "GF":
@@ -78,7 +73,11 @@ public partial class ModLoader : MonoBehaviour
     internal static void Init_MD()
     {
         if (unloader) return;
+#if MSC
         ModsFolder = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Path.Combine("MySummerCar", "Mods")));
+#elif MWC
+        ModsFolder = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Path.Combine("My Winter Car", "Mods")));
+#endif
         PrepareModLoader();
     }
 
@@ -130,7 +129,7 @@ public partial class ModLoader : MonoBehaviour
         {
             case "MainMenu":
                 PrepareModLoader();
-                CurrentScene = CurrentScene.MainMenu;
+                currentScene = CurrentScene.MainMenu;
                 if (GameObject.Find("Music"))
                     GameObject.Find("Music").GetComponent<AudioSource>().Play();
                 if (QualitySettings.vSyncCount != 0)
@@ -148,33 +147,41 @@ public partial class ModLoader : MonoBehaviour
                     unloader = true;
                     return;
                 }
+#if MWC
+                //OnNewGame() temporary MWC point until intro exist
+                GameObject ngm = GameObject.Find("Interface/Buttons/ButtonNewgame").GetPlayMaker("SetSize").GetState("State 1").GetAction<ActivateGameObject>(1).gameObject.GameObject.Value;
+                ngm.transform.Find("Buttons/ButtonBegin").GetPlayMaker("SetSize").FsmInject("Load", ModNewGameReset, false, 0);
+#endif
+#if MSC
                 if (IsReferencePresent("MSCCoreLibrary"))
                     TimeSchedulerCalls("stop");
+#endif
                 break;
             case "Intro":
-                CurrentScene = CurrentScene.NewGameIntro;
-
-                if (!IsModsResetting)
-                {
-                    IsModsResetting = true;
-                    StartCoroutine(NewGameMods());
-                }
+                currentScene = CurrentScene.NewGameIntro;
+#if MSC
+                ModNewGameReset();
+#endif
                 break;
             case "GAME":
-                CurrentScene = CurrentScene.Game;
+                currentScene = CurrentScene.Game;
                 if (ModMenu.forceMenuVsync.GetValue() && !vse)
                     QualitySettings.vSyncCount = 0;
 
                 menuInfoAnim.Play("fade_out");
+#if MSC
                 if (IsReferencePresent("MSCCoreLibrary"))
                     TimeSchedulerCalls("start");
+#endif
                 StartLoadingMods();
                 ModMenu.ModMenuHandle();
                 break;
             case "Ending":
-                CurrentScene = CurrentScene.Ending;
+                currentScene = CurrentScene.Ending;
+#if MSC
                 if (IsReferencePresent("MSCCoreLibrary"))
                     TimeSchedulerCalls("stop");
+#endif
                 break;
             default:
                 break;
@@ -182,6 +189,15 @@ public partial class ModLoader : MonoBehaviour
         }
     }
 
+    private void ModNewGameReset()
+    {
+        if (!IsModsResetting)
+        {
+            IsModsResetting = true;
+            StartCoroutine(NewGameMods());
+        }
+    }
+#if MSC
     private void TimeSchedulerCalls(string call)
     {
         switch (call)
@@ -203,6 +219,7 @@ public partial class ModLoader : MonoBehaviour
                 break;
         }
     }
+#endif
     private void StartLoadingMods()
     {
         if (!allModsLoaded && !IsModsLoading)
@@ -215,7 +232,7 @@ public partial class ModLoader : MonoBehaviour
     private void Init()
     {
         Console.WriteLine($"{Environment.NewLine}[MSCLoader Init]");
-        Console.WriteLine($"Detected game: {CurrentGame}");
+        Console.WriteLine($"Detected game: {currentGame}");
         Console.WriteLine($"MSCLoader version: {MSCLInfo.Version} build {MSCLInfo.Build}");
         Console.WriteLine($"MSCLoader target game: {MSCLInfo.TargetGame}");
         string[] launchArgs = Environment.GetCommandLineArgs();
@@ -336,7 +353,16 @@ public partial class ModLoader : MonoBehaviour
         ModConsole.Print("This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.");
         
         SaveLoad.LoadModsSaveData();
-        PreLoadMods();
+#if MWC
+        if (ModMenu.ignoreCompatibility.GetValue())
+        {
+            Console.WriteLine("=========================");
+            Console.WriteLine("Compatibility is ignored.");
+            Console.WriteLine("=========================");
+        }
+
+#endif
+            PreLoadMods();
         if (InvalidMods.Count > 0)
             ModConsole.Print($"<b><color=orange>Loaded <color=aqua>{actualModList.Length}</color> mods (<color=magenta>{InvalidMods.Count}</color> failed to load)!</color></b>{Environment.NewLine}");
         else
@@ -344,13 +370,13 @@ public partial class ModLoader : MonoBehaviour
         MSCLInternal.LoadMSCLDataFile();
         LoadModsSettings();
         ModMenu.LoadBinds();
-        #if MSC
+#if MSC
         GameObject old_callbacks = new GameObject("BC Callbacks");
         old_callbacks.transform.SetParent(gameObject.transform, false);
         if (OnGUImods.Length > 0) old_callbacks.AddComponent<BC_ModOnGUI>().modLoader = this;
         if (UpdateMods.Length > 0) old_callbacks.AddComponent<BC_ModUpdate>().modLoader = this;
         if (FixedUpdateMods.Length > 0) old_callbacks.AddComponent<BC_ModFixedUpdate>().modLoader = this;
-        #endif
+#endif
         GameObject mod_callbacks = new GameObject("MSCLoader Callbacks");
         mod_callbacks.transform.SetParent(gameObject.transform, false);
         if (Mod_OnGUI.Length > 0) mod_callbacks.AddComponent<A_ModOnGUI>().modLoader = this;
@@ -419,9 +445,6 @@ public partial class ModLoader : MonoBehaviour
                 {
                     string s2 = File.ReadAllText(Path.Combine(SettingsFolder, Path.Combine("MSCLoader_Settings", "ref_updateInfo.json")));
                     RefVersions v2 = JsonConvert.DeserializeObject<RefVersions>(s2);
-                }
-                else
-                {
                 }
             }
             else
@@ -559,7 +582,7 @@ public partial class ModLoader : MonoBehaviour
         if (Directory.Exists(Path.Combine(ModsFolder, "References")))
         {
             string[] files = Directory.GetFiles(Path.Combine(ModsFolder, "References"), "*.dll");
-            string[] alreadyIncluded = Directory.GetFiles(Path.Combine("mysummercar_Data", "Managed"), "*.dll").Select(Path.GetFileName).ToArray();
+            string[] alreadyIncluded = Directory.GetFiles(ManagedPath, "*.dll").Select(Path.GetFileName).ToArray();
             string[] unusedFiles = [];
 
             if (File.Exists(Path.Combine(Path.Combine(ModsFolder, "References"), "unused.txt")))
@@ -570,7 +593,7 @@ public partial class ModLoader : MonoBehaviour
             {
                 if (Path.GetFileName(files[i]) == "0Harmony12.dll" || Path.GetFileName(files[i]) == "0Harmony-1.2.dll" || Path.GetFileName(files[i]) == "Ionic.Zip.dll" || alreadyIncluded.Contains(Path.GetFileName(files[i])))
                 {
-                    ModConsole.Warning($"<b>{Path.GetFileName(files[i])}</b> already exist in <b>{Path.GetFullPath(Path.Combine("mysummercar_Data", "Managed"))}</b> - skipping");
+                    ModConsole.Warning($"<b>{Path.GetFileName(files[i])}</b> already exist in <b>{Path.GetFullPath(ManagedPath)}</b> - skipping");
                     File.Delete(files[i]);
                     continue;
                 }
@@ -632,7 +655,7 @@ public partial class ModLoader : MonoBehaviour
     private void LoadCoreAssets()
     {
         ModConsole.Print("Loading core assets...");
-        AssetBundle ab = LoadAssets.LoadBundle("MSCLoader.CoreAssets.core.unity3d");
+        AssetBundle ab = LoadAssets.LoadBundle(MSCLInfo.coreAssetsPath);
         guiskin = ab.LoadAsset<GUISkin>("MSCLoader.guiskin");
         ModUI.canvasPrefab = ab.LoadAsset<GameObject>("CanvasPrefab.prefab");
         mainMenuInfo = ab.LoadAsset<GameObject>("MSCLoader Info.prefab");
@@ -667,14 +690,14 @@ public partial class ModLoader : MonoBehaviour
 
     private bool CheckCorrectGame()
     {
-        if(CurrentGame == Game.MySummerCar && !MSCLInfo.BuildType.StartsWith("MSC"))
+        if (currentGame == Game.MySummerCar && !MSCLInfo.BuildType.StartsWith("MSC"))
         {
             return false;
         }
-        if (CurrentGame == Game.MyWinterCar && !MSCLInfo.BuildType.StartsWith("MWC"))
+        if (currentGame == Game.MyWinterCar && !MSCLInfo.BuildType.StartsWith("MWC"))
         {
             return false;
-        }        
+        }
         return true;
     }
     /// <summary>
@@ -689,7 +712,7 @@ public partial class ModLoader : MonoBehaviour
     {
         Text info, mf, extra;
         mainMenuInfo = Instantiate(mainMenuInfo);
-        mainMenuInfo.name = "FreeMSCLoader Info";
+        mainMenuInfo.name = "MSCLoader Info";
         menuInfoAnim = mainMenuInfo.GetComponent<Animation>();
         menuInfoAnim.Play("fade_in");
         info = mainMenuInfo.transform.GetChild(0).gameObject.GetComponent<Text>();
@@ -898,10 +921,16 @@ public partial class ModLoader : MonoBehaviour
         canvLoading.SetLoadingProgress((int)canvLoading.lProgress.maxValue, (int)canvLoading.lProgress.maxValue);
         canvLoading.SetLoadingStatus("Finishing touches...");
         yield return null;
-        GameObject.Find("ITEMS").GetComponent<PlayMakerFSM>().FsmInject("Save game", SaveMods);
+#if MSC
+        GameObject.Find("ITEMS").GetComponent<PlayMakerFSM>().FsmInject("Save game", SaveMods); 
+#elif MWC
+        GameObject.Find("Database/PlayerDatabase").GetPlayMaker("Simulation").FsmInject("Save data", SaveMods); //TODO: test
+#endif
         ModConsole.Print("<i></i></color>");
+#if MSC
         if (IsReferencePresent("MSCCoreLibrary"))
             TimeSchedulerCalls("load");
+#endif
         yield return null;
         allModsLoaded = true;
         canvLoading.ToggleLoadingUI(false);
@@ -939,9 +968,9 @@ public partial class ModLoader : MonoBehaviour
                 ModException(e, OnSaveMods[i], true);
             }
         }
-#endif
         if (IsReferencePresent("MSCCoreLibrary"))
             TimeSchedulerCalls("save");
+#endif
     }
 
     internal static bool CheckEmptyMethod(Mod mod, string methodName)
@@ -1165,17 +1194,30 @@ public partial class ModLoader : MonoBehaviour
                 {
                     Mod m = (Mod)Activator.CreateInstance(asmTypes[j]);
                     if (m.ID.StartsWith("MSCLoader_")) continue;
-                    if (!CurrentGame.Equals(m.supportedGames))
+                    if ((m.SupportedGames & currentGame) ==  0)
                     {
-                        ModConsole.Error($"Mod <b><color=orange>{Path.GetFileName(file)}</color></b> is not compatible with current game! This mod was made for: <b><color=yellow>{m.supportedGames}</color></b>. Please install correct version of the mod.");
-                        InvalidMods.Add(new InvalidMods(Path.GetFileName(file), true, "This mod is not compatible with current game.", new List<string>(), ""));
-                        return;
+#if MWC
+                        if (ModMenu.ignoreCompatibility.GetValue())
+                        {
+                            ModConsole.Warning($"Mod <b><color=orange>{Path.GetFileName(file)}</color></b> is not set as compatible with current game! This mod was made for: <b><color=yellow>{m.SupportedGames}</color></b>.");
+                            m.isIncompatible = true;
+                        } 
+                        else 
+                        { 
+#endif
+                            ModConsole.Error($"Mod <b><color=orange>{Path.GetFileName(file)}</color></b> is not set as compatible with current game! This mod was made for: <b><color=yellow>{m.SupportedGames}</color></b>.");
+                            IncompatibleMods.Add(m);
+                            InvalidMods.Add(new InvalidMods(Path.GetFileName(file), true, $"This mod is not marked as compatible with current game. Compatible games: <color=aqua>{m.SupportedGames}</color>", new List<string>(), ""));
+                            return;
+#if MWC
+                        }
+#endif
                     }
                     if (string.IsNullOrEmpty(m.ID.Trim()))
                     {
                         //Do not allow null/empty/whitespace modID.
                         Console.Write("Empty mod ID");
-                        break;
+                        return;
                     }
                     m.asmGuid = asmGuid;
                     isMod = true;

@@ -7,11 +7,13 @@ using System.Linq;
 namespace MSCLoader;
 
 public partial class ModLoader
-{
-    internal static Game CurrentGame = Game.MySummerCar;
+{     
+    internal static Game currentGame = Game.MySummerCar;
+    internal static CurrentScene currentScene = CurrentScene.MainMenu;
 
     internal static bool LogAllErrors = false;
     internal static List<InvalidMods> InvalidMods;
+    internal static List<Mod> IncompatibleMods = new List<Mod>();
     internal static ModLoader Instance;
     internal static bool unloader = false;
     internal static bool returnToMainMenu = false;
@@ -24,7 +26,7 @@ public partial class ModLoader
     internal List<string> crashedGuids = new List<string>();
     internal List<string> modIDsReferences = new List<string>();
     internal List<References> ReferencesList = new List<References>();
-    internal string[] stdRef = ["mscorlib", "System.Core", "UnityEngine", "PlayMaker", "MSCLoader", "System", "Assembly-CSharp", "Assembly-CSharp-firstpass", "Assembly-UnityScript", "Assembly-UnityScript-firstpass", "ES2", "Ionic.Zip", "UnityEngine.UI", "0Harmony", "cInput", "Newtonsoft.Json", "System.Xml"];
+    internal string[] stdRef = ["mscorlib", "System.Core", "UnityEngine", "PlayMaker", "MSCLoader", "System", "Assembly-CSharp", "Assembly-CSharp-firstpass", "Assembly-UnityScript", "Assembly-UnityScript-firstpass", "ES2", "Ionic.Zip", "Ionic.Zip.Reduced", "UnityEngine.UI", "0Harmony", "cInput", "Newtonsoft.Json", "System.Xml"];
 
     //Old stuff
     internal Mod[] PLoadMods = [];
@@ -52,7 +54,12 @@ public partial class ModLoader
     internal static string steamID;
     internal static bool loaderPrepared = false;
     internal static bool initCalled = false;
+#if MSC
     internal static string ModsFolder = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Path.Combine("MySummerCar", "Mods")));
+#elif MWC
+    internal static string ModsFolder = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Path.Combine("My Winter Car", "Mods")));
+#endif
+    internal static string ManagedPath = Environment.GetEnvironmentVariable("DOORSTOP_MANAGED_FOLDER_DIR");
     internal static string ConfigFolder = Path.Combine(ModsFolder, "Config");
     internal static string SettingsFolder = Path.Combine(ConfigFolder, "Mod Settings");
     internal static string MetadataFolder = Path.Combine(ConfigFolder, "Mod Metadata");
